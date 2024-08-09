@@ -2,6 +2,7 @@ import 'package:fzc_global_app/api/product_api.dart';
 import 'package:fzc_global_app/models/product_model.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:fzc_global_app/utils/secure_storage.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
@@ -13,8 +14,10 @@ class BarcodeScannerPage extends StatefulWidget {
 
 class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   late Future<List<ProductModel>> _products;
+  final SecureStorage secureStorage = SecureStorage();
   String barcode = '';
-
+  String customerId = '';
+  String supplierId = '';
   @override
   void initState() {
     super.initState();
@@ -26,11 +29,20 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           builder: (context) => const SimpleBarcodeScannerPage(),
         ),
       );
+
+      customerId =
+          await secureStorage.readSecureData(SecureStorageKeys.customer) ?? "";
+      supplierId =
+          await secureStorage.readSecureData(SecureStorageKeys.supplier) ?? "";
+
       setState(() {
         if (res is String) {
           if (res != "-1") {
             barcode = res;
-            _products = getProducts(res);
+            _products = getProducts(
+                barcode: barcode,
+                customerId: customerId,
+                supplierId: supplierId);
           }
         }
       });
@@ -39,7 +51,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
   Future<void> _refreshProducts() async {
     setState(() {
-      _products = getProducts(barcode);
+      _products = getProducts(
+          barcode: barcode, customerId: customerId, supplierId: supplierId);
     });
   }
 

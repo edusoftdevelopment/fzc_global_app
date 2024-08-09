@@ -3,17 +3,30 @@ import 'package:fzc_global_app/models/product_model.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:http/http.dart' as http;
 
-Future<List<ProductModel>> getProducts(String Barcode) async {
+Future<List<ProductModel>> getProducts(
+    {String? barcode = "",
+    String? customerId = "",
+    String? supplierId = "",
+    String? itemCode = ""}) async {
   try {
     String queryParams = "";
 
-    if (Barcode != "") {
-      queryParams += "?Barcode=${Barcode.trim()}";
+    if (barcode != "" && barcode != null) {
+      queryParams += "&Barcode=${barcode.trim()}";
+    }
+    if (customerId != "" && customerId != null) {
+      queryParams += "&CustomerID=${customerId.trim()}";
+    }
+    if (supplierId != "" && supplierId != null) {
+      queryParams += "&SupplierID=${supplierId.trim()}";
+    }
+    if (itemCode != "" && itemCode != null) {
+      queryParams += "&ItemCode=${itemCode.trim()}";
     }
 
     final response = await http.post(
         Uri.parse(
-            '${APIConstants.baseUrl}/BarcodeAllotment/GetAllProducts$queryParams'),
+            '${APIConstants.baseUrl}/BarcodeAllotment/GetAllProducts${queryParams.replaceFirst("&", "?")}'),
         headers: {"Content-Type": "application/json"});
 
     if (response.statusCode == 200) {
@@ -39,12 +52,12 @@ class APIResponse {
   APIResponse({required this.error, required this.success});
 }
 
-Future<APIResponse> addProduct(
-    ProductModel product, String barCode, int updatedQuantity) async {
+Future<APIResponse> addProduct(ProductModel product, String barCode,
+    int updatedQuantity, String from) async {
   String apiUrl = '${APIConstants.baseUrl}/BarcodeAllotment/AddBoxAllotment';
 
   Map<String, dynamic> jsonData =
-      product.toJson(barCode.trim(), updatedQuantity);
+      product.toJson(barCode.trim(), updatedQuantity, from);
 
   try {
     var response = await http.post(

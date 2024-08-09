@@ -13,7 +13,7 @@ class _DashboardState extends State<Dashboard> {
     {
       "title": "Parts",
       "icon": Icons.settings,
-      "routeUrl": "/barcodescanner",
+      "routeUrl": "/chooseoptions",
     },
   ];
 

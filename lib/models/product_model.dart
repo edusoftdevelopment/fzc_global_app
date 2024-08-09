@@ -36,27 +36,28 @@ class ProductModel {
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      itemCode: json['ItemCode'],
-      customerName: json['CustomerName'],
-      customerID: json['CustomerID'],
-      voucherID: json['SupplierInvoiceID'],
-      voucherDetailID: json['SupplierInvoiceDetailID'],
-      saleOrderID: json['SaleOrderID'],
-      saleOrderDetailID: json['SaleOrderDetailID'],
-      make: json['Make'],
+      itemCode: json['ItemCode'] ?? "",
+      customerName: json['CustomerName'] ?? "",
+      customerID: json['CustomerID'] ?? "",
+      voucherID: json['SupplierInvoiceID'] ?? "",
+      voucherDetailID: json['SupplierInvoiceDetailID'] ?? "",
+      saleOrderID: json['SaleOrderID'] ?? "",
+      saleOrderDetailID: json['SaleOrderDetailID'] ?? "",
+      make: json['Make'] ?? "",
       quantity: int.parse(json['Quantity'].toString().replaceAll(".", "")),
-      itemName: json['ItemName'],
-      barcode: json['Barcode'],
+      itemName: json['ItemName'] ?? "",
+      barcode: json['Barcode'] ?? "",
       price: double.parse(json['Price'].toString()),
       updatedQuantity:
           int.parse(json['Quantity'].toString().replaceAll(".", "")),
-      type: json['Type'],
-      orderNo: json['OrderNo'],
-      supplierOrderNo: json['SupplierOrderNo'],
+      type: json['Type'] ?? "",
+      orderNo: json['OrderNo'] ?? "",
+      supplierOrderNo: json['SupplierOrderNo'] ?? "",
     );
   }
 
-  Map<String, dynamic> toJson(String barCode, int updatedQuantity) {
+  Map<String, dynamic> toJson(
+      String barCode, int updatedQuantity, String from) {
     return {
       'BarcodeAllotmentID': 0,
       'ItemCode': itemCode,
@@ -69,7 +70,8 @@ class ProductModel {
       'Make': make,
       'Barcode': barCode,
       'UpdatedQuantity': updatedQuantity,
-      'Type': type
+      'Type': type,
+      'From': from
     };
   }
 }

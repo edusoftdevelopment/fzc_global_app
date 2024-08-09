@@ -3,6 +3,9 @@ import "dart:io";
 import "package:fzc_global_app/components/bottom_navigaton_bar.dart";
 import "package:fzc_global_app/pages/barcode_scanner_page.dart";
 import "package:fzc_global_app/pages/box_allotment_page.dart";
+import "package:fzc_global_app/pages/box_allotment_with_itemcode_page.dart";
+import "package:fzc_global_app/pages/choose_scan_option_page.dart";
+import "package:fzc_global_app/pages/itemcode_scanner_page.dart";
 
 import "package:fzc_global_app/pages/login_page.dart";
 import "package:fzc_global_app/screens/splash_screen.dart";
@@ -24,6 +27,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: "/",
       theme: ThemeData(
+          bottomSheetTheme: const BottomSheetThemeData(
+            backgroundColor: Constants.bgColor,
+          ),
           scaffoldBackgroundColor: Constants.bgColor,
           textTheme: const TextTheme(
               bodyMedium: TextStyle(color: Constants.whiteColor)),
@@ -41,6 +47,10 @@ class MyApp extends StatelessWidget {
         "/auth/login": (context) => const LoginPage(),
         "/barcodescanner": (context) => const BarcodeScannerPage(),
         "/boxallotment": (context) => const BoxAllotmentPage(),
+        "/chooseoptions": (context) => const ChooseScanOptionPage(),
+        "/itemcodescanner": (context) => const ItemcodeScannerPage(),
+        "/itemcodeboxallotment": (context) =>
+            const BoxAllotmentWithItemcodePage(),
       },
     );
   }

@@ -39,6 +39,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   simple_barcode_scanner: ^0.1.1
   fluttertoast: ^8.2.6
+  dropdown_search: ^5.0.6
 
 dev_dependencies:
   flutter_test:

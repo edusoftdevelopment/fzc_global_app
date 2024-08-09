@@ -14,11 +14,13 @@ class Constants {
 }
 
 class APIConstants {
-  static const String baseUrl = 'https://apsze.world:487';
+  static const String baseUrl = 'https://foxhound-ace-wildly.ngrok-free.app';
 }
 
 class SecureStorageKeys {
   static const String userId = "userid";
   static const String username = "username";
   static const String email = "email";
+  static const String customer = "CustomerID";
+  static const String supplier = "SupplierID";
 }

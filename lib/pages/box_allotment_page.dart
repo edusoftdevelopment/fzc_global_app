@@ -66,8 +66,8 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
                 Navigator.pop(context);
               }
             } else {
-              var response =
-                  await addProduct(product, result, product.updatedQuantity);
+              var response = await addProduct(
+                  product, result, product.updatedQuantity, "BARCODE");
 
               if (response.success) {
                 Fluttertoast.showToast(
@@ -80,7 +80,7 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
                   fontSize: 16.0,
                 );
                 if (mounted) {
-                  Navigator.pushNamed(context, "/dashboard");
+                  Navigator.pushNamed(context, "/barcodescanner");
                 }
               } else {
                 Fluttertoast.showToast(
