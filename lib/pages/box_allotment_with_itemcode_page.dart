@@ -60,7 +60,7 @@ class _BoxAllotmentWithItemcodePageState
             Fluttertoast.showToast(
               msg: "Alloted successfully!",
               toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
+              gravity: ToastGravity.BOTTOM_LEFT,
               timeInSecForIosWeb: 1,
               backgroundColor: Colors.green,
               textColor: Colors.white,
@@ -87,6 +87,7 @@ class _BoxAllotmentWithItemcodePageState
         }
       } catch (e) {
         setState(() {
+          _isError = true;
           message = "$e";
         });
       }
@@ -99,14 +100,17 @@ class _BoxAllotmentWithItemcodePageState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(product.itemCode),
-      ),
+          title: Text(product.itemCode), automaticallyImplyLeading: false),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("Adding please wait..."),
             if (_isError) ...[
+              Padding(padding: const EdgeInsets.all(8), child: Text(message)),
+              const SizedBox(
+                height: 20,
+              ),
               GestureDetector(
                 onTap: () {
                   Navigator.pop(context);
@@ -124,6 +128,7 @@ class _BoxAllotmentWithItemcodePageState
                 ),
               )
             ] else ...[
+              const Text("Adding please wait..."),
               const CircularProgressIndicator()
             ]
           ],

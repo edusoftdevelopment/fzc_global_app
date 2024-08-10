@@ -15,6 +15,11 @@ class _DashboardState extends State<Dashboard> {
       "icon": Icons.settings,
       "routeUrl": "/chooseoptions",
     },
+    {
+      "title": "Zebra Device Scanner",
+      "icon": Icons.barcode_reader,
+      "routeUrl": "/zebratouchcomputerscanner",
+    },
   ];
 
   Widget cardTile(String title, IconData icon, String routeUrl) {

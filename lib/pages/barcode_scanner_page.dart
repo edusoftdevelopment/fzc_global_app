@@ -206,95 +206,108 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Parts')),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: FutureBuilder(
-            future: _products,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "No products found!",
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, "/dashboard");
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          decoration: BoxDecoration(
-                              color: Constants.primaryColor,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: const Text(
-                            "Go Back",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Parts'),
+          leading: BackButton(
+            color: const Color.fromARGB(255, 0, 0, 0),
+            onPressed: () {
+              Navigator.of(context).pushNamed("/chooseoptions");
+            },
+          ),
+        ),
+        body: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: FutureBuilder(
+              future: _products,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "No products found!",
+                          style: TextStyle(fontSize: 20),
                         ),
-                      )
-                    ],
-                  ),
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "No products found!",
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, "/dashboard");
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          decoration: BoxDecoration(
-                              color: Constants.primaryColor,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: const Text(
-                            "Go Back",
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
+                        const SizedBox(
+                          height: 10,
                         ),
-                      )
-                    ],
-                  ),
-                );
-              } else {
-                return RefreshIndicator(
-                  onRefresh: _refreshProducts,
-                  child: ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return productCartd(snapshot.data![index]);
-                    },
-                    separatorBuilder: (context, index) => const SizedBox(
-                      height: 10,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, "/dashboard");
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            decoration: BoxDecoration(
+                                color: Constants.primaryColor,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: const Text(
+                              "Go Back",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                  ),
-                );
-              }
-            }),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "No products found!",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, "/dashboard");
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            decoration: BoxDecoration(
+                                color: Constants.primaryColor,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: const Text(
+                              "Go Back",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                } else {
+                  return RefreshIndicator(
+                    onRefresh: _refreshProducts,
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return productCartd(snapshot.data![index]);
+                      },
+                      separatorBuilder: (context, index) => const SizedBox(
+                        height: 10,
+                      ),
+                    ),
+                  );
+                }
+              }),
+        ),
       ),
     );
   }

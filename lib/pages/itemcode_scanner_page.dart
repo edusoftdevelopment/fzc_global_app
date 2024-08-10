@@ -14,7 +14,7 @@ class ItemcodeScannerPage extends StatefulWidget {
 }
 
 class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
-  late Future<List<ProductModel>> _products;
+  late Future<List<ProductModel>> _products = Future.value([]);
   final TextEditingController _searchController = TextEditingController();
   final SecureStorage secureStorage = SecureStorage();
   String itemCode = '';
@@ -24,14 +24,15 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
   @override
   void initState() {
     super.initState();
-    _products = Future.value([]);
 
-    Future.microtask(() async {
-      customerId =
-          await secureStorage.readSecureData(SecureStorageKeys.customer) ?? "";
-      supplierId =
-          await secureStorage.readSecureData(SecureStorageKeys.supplier) ?? "";
-    });
+    loadProducts();
+  }
+
+  void loadProducts() async {
+    customerId =
+        await secureStorage.readSecureData(SecureStorageKeys.customer) ?? "";
+    supplierId =
+        await secureStorage.readSecureData(SecureStorageKeys.supplier) ?? "";
   }
 
   Future<void> _refreshProducts() async {
@@ -52,10 +53,6 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
             customerId: customerId);
       });
     }
-  }
-
-  Future<bool> addProduct(ProductModel product) async {
-    return true;
   }
 
   Widget productCartd(ProductModel product) {
@@ -106,9 +103,15 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
                 "Item Name",
                 style: TextStyle(color: Constants.whiteColor),
               ),
-              Text(
-                product.itemName,
-                style: const TextStyle(color: Constants.whiteColor),
+              const SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: Text(
+                  product.itemName.trim(),
+                  style: const TextStyle(color: Constants.whiteColor),
+                  softWrap: true,
+                ),
               ),
             ],
           ),
@@ -208,57 +211,98 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Parts'),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
         backgroundColor: Colors.white,
-      ),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(0),
-              child: Container(
-                // Add padding around the search bar
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                // Use a Material design search bar
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search...',
-                    // Add a clear button to the search bar
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => _searchController.clear(),
-                    ),
-                    // Add a search icon or button to the search bar
-                    prefixIcon: IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {
-                        searchWithItemCode();
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.0),
+        appBar: AppBar(
+          title: const Text('Parts'),
+          backgroundColor: Colors.white,
+          leading: BackButton(
+            color: const Color.fromARGB(255, 0, 0, 0),
+            onPressed: () {
+              Navigator.of(context).pushNamed("/chooseoptions");
+            },
+          ),
+        ),
+        body: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(0),
+                child: Container(
+                  // Add padding around the search bar
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  // Use a Material design search bar
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      // Add a clear button to the search bar
+                      prefixIcon: IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => _searchController.clear(),
+                      ),
+                      // Add a search icon or button to the search bar
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          searchWithItemCode();
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Expanded(
-              child: FutureBuilder(
-                  future: _products,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return SingleChildScrollView(
-                        child: Expanded(
+              const SizedBox(
+                height: 20,
+              ),
+              Expanded(
+                child: FutureBuilder(
+                    future: _products,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return SingleChildScrollView(
+                          child: Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  "No products found!",
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 10),
+                                    decoration: BoxDecoration(
+                                        color: Constants.primaryColor,
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child: const Text(
+                                      "Go Back",
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 18),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -271,7 +315,9 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
                                 height: 10,
                               ),
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.pushNamed(context, "/dashboard");
+                                },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 10),
@@ -287,59 +333,27 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
                               )
                             ],
                           ),
-                        ),
-                      );
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "No products found!",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            const SizedBox(
+                        );
+                      } else {
+                        return RefreshIndicator(
+                          onRefresh: _refreshProducts,
+                          child: ListView.separated(
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return productCartd(snapshot.data![index]);
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(
                               height: 10,
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(context, "/dashboard");
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 10),
-                                decoration: BoxDecoration(
-                                    color: Constants.primaryColor,
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: const Text(
-                                  "Go Back",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      );
-                    } else {
-                      return RefreshIndicator(
-                        onRefresh: _refreshProducts,
-                        child: ListView.separated(
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return productCartd(snapshot.data![index]);
-                          },
-                          separatorBuilder: (context, index) => const SizedBox(
-                            height: 10,
                           ),
-                        ),
-                      );
-                    }
-                  }),
-            ),
-          ],
+                        );
+                      }
+                    }),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -8,6 +8,7 @@ import "package:fzc_global_app/pages/choose_scan_option_page.dart";
 import "package:fzc_global_app/pages/itemcode_scanner_page.dart";
 
 import "package:fzc_global_app/pages/login_page.dart";
+import "package:fzc_global_app/pages/zebra_touch_computer_scanner_page.dart";
 import "package:fzc_global_app/screens/splash_screen.dart";
 import "package:fzc_global_app/utils/constants.dart";
 import "package:flutter/material.dart";
@@ -51,6 +52,8 @@ class MyApp extends StatelessWidget {
         "/itemcodescanner": (context) => const ItemcodeScannerPage(),
         "/itemcodeboxallotment": (context) =>
             const BoxAllotmentWithItemcodePage(),
+        "/zebratouchcomputerscanner": (context) =>
+            const ZebraTouchComputerScannerPage(),
       },
     );
   }
