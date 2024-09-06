@@ -1,5 +1,6 @@
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:fzc_global_app/utils/secure_storage.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -9,6 +10,19 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  final SecureStorage secureStorage = SecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    initLoad();
+  }
+
+  Future<void> initLoad() async {
+    await secureStorage.writeSecureData(SecureStorageKeys.customer, "");
+    await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
+  }
+
   final List<Map<String, dynamic>> items = [
     {
       "title": "Parts",

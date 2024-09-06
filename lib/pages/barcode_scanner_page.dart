@@ -240,7 +240,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushNamed(context, "/dashboard");
+                            Navigator.of(context).pushNamed("/chooseoptions");
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -273,7 +273,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushNamed(context, "/dashboard");
+                            Navigator.of(context).pushNamed("/chooseoptions");
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(

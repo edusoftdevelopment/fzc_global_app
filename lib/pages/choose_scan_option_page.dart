@@ -33,8 +33,6 @@ class _ChooseScanOptionPageState extends State<ChooseScanOptionPage> {
     setState(() {
       _isLoading = true;
     });
-    await secureStorage.writeSecureData(SecureStorageKeys.customer, "");
-    await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
 
     try {
       final fetchedCustomers = await getCustomers();

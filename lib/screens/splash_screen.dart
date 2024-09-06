@@ -42,10 +42,9 @@ class _CustomSplashScreenState extends State<CustomSplashScreen>
     await Future.delayed(const Duration(seconds: 3));
     SecureStorage secureStorage =
         SecureStorage(); // Simulate a delay for splash screen
-    String? token =
-        await secureStorage.readSecureData(SecureStorageKeys.userId);
+    String? token = "token";
 
-    if (token != null && token.isNotEmpty) {
+    if (token.isNotEmpty) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const TabsNavigation()),

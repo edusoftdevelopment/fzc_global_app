@@ -229,34 +229,45 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(0),
-                child: Container(
-                  // Add padding around the search bar
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  // Use a Material design search bar
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      // Add a clear button to the search bar
-                      prefixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => _searchController.clear(),
-                      ),
-                      // Add a search icon or button to the search bar
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {
-                          searchWithItemCode();
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Type Item Code...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  GestureDetector(
+                    onTap: searchWithItemCode,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 18),
+                      decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 2,
+                            ),
+                          ],
+                          color: Constants.primaryColor,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: const Text(
+                        "Search",
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  )
+                ],
               ),
               const SizedBox(
                 height: 20,
@@ -268,38 +279,36 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       } else if (snapshot.hasError) {
-                        return SingleChildScrollView(
-                          child: Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  "No products found!",
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                GestureDetector(
-                                  onTap: () {},
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 10),
-                                    decoration: BoxDecoration(
-                                        color: Constants.primaryColor,
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: const Text(
-                                      "Go Back",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 18),
-                                    ),
-                                  ),
-                                )
-                              ],
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "No products found!",
+                              style: TextStyle(fontSize: 20),
                             ),
-                          ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context)
+                                    .pushNamed("/chooseoptions");
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 10),
+                                decoration: BoxDecoration(
+                                    color: Constants.primaryColor,
+                                    borderRadius: BorderRadius.circular(10)),
+                                child: const Text(
+                                  "Go Back",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 18),
+                                ),
+                              ),
+                            )
+                          ],
                         );
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return Center(
@@ -307,30 +316,21 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Text(
-                                "No products found!",
-                                style: TextStyle(fontSize: 20),
+                              if (_searchController.text.isEmpty) ...[
+                                const Icon(
+                                  Icons.search,
+                                  size: 120,
+                                )
+                              ],
+                              Text(
+                                _searchController.text.isNotEmpty
+                                    ? "No products found!"
+                                    : "Search for products...",
+                                style: const TextStyle(fontSize: 20),
                               ),
                               const SizedBox(
                                 height: 10,
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(context, "/dashboard");
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10),
-                                  decoration: BoxDecoration(
-                                      color: Constants.primaryColor,
-                                      borderRadius: BorderRadius.circular(10)),
-                                  child: const Text(
-                                    "Go Back",
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 18),
-                                  ),
-                                ),
-                              )
                             ],
                           ),
                         );
