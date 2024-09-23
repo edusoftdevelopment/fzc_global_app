@@ -1,4 +1,6 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/pages/login_page.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
@@ -11,6 +13,41 @@ class UserAccountPage extends StatefulWidget {
 }
 
 class _UserAccountPageState extends State<UserAccountPage> {
+  SecureStorage secureStorage = SecureStorage();
+  DropDownItem? _selectedValue;
+
+  final List<DropDownItem> _deviceOptions = [
+    DropDownItem(label: "Mobile Camera", value: "mobile"),
+    DropDownItem(label: "Zebra Scanner Device", value: "zebra_scanner"),
+  ];
+
+  @override
+  void initState() {
+    Future.microtask(() async {
+      String storedDevice = await secureStorage
+              .readSecureData(SecureStorageKeys.selectedDevice) ??
+          "";
+
+      if (storedDevice.isNotEmpty) {
+        setState(() {
+          _selectedValue = DropDownItem(
+              label: _deviceOptions
+                  .firstWhere((item) => item.value == storedDevice)
+                  .label,
+              value: storedDevice);
+        });
+      }
+    });
+
+    super.initState();
+  }
+
+  void _onDeviceOptionChange(DropDownItem? selectedOption) {
+    if (selectedOption != null) {}
+    secureStorage.writeSecureData(
+        SecureStorageKeys.selectedDevice, selectedOption!.value);
+  }
+
   void _logoutUser() {
     showDialog(
         context: context,
@@ -82,6 +119,22 @@ class _UserAccountPageState extends State<UserAccountPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            DropdownSearch<DropDownItem>(
+            popupProps: const PopupProps.menu(
+                  showSearchBox: true,
+                  menuProps: MenuProps(backgroundColor: Colors.white)),
+              items: _deviceOptions,
+              itemAsString: (DropDownItem u) => u.label,
+              dropdownDecoratorProps: const DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+                  labelText: "Scanner",
+                  hintText: "Choose a scanner...",
+                ),
+              ),
+              onChanged: _onDeviceOptionChange,
+              selectedItem: _selectedValue,
+            ),
+            const Spacer(),
             GestureDetector(
               onTap: _logoutUser,
               child: Container(

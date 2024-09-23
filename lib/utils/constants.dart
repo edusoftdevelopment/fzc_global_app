@@ -14,8 +14,8 @@ class Constants {
 }
 
 class APIConstants {
-  static const String baseUrl = 'https://foxhound-ace-wildly.ngrok-free.app';
-  // static const String baseUrl = 'https://apsze.world:487';
+  // static const String baseUrl = 'https://foxhound-ace-wildly.ngrok-free.app';
+  static const String baseUrl = 'https://apsze.world:487';
 }
 
 class SecureStorageKeys {
@@ -24,4 +24,5 @@ class SecureStorageKeys {
   static const String email = "email";
   static const String customer = "CustomerID";
   static const String supplier = "SupplierID";
+  static const String selectedDevice = "selectedDevice";
 }

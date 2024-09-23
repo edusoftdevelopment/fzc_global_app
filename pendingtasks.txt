@@ -1,0 +1,1 @@
+On Barcode Scanner Page Stop the scanner to refetch the data with Zebra Device

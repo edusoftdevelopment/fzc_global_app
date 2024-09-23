@@ -1,12 +1,14 @@
 import 'package:fzc_global_app/api/product_api.dart';
 import 'package:fzc_global_app/models/product_model.dart';
+import 'package:fzc_global_app/pages/box_allotment_page.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
-  const BarcodeScannerPage({super.key});
+  final String? barcode;
+  const BarcodeScannerPage({super.key, this.barcode});
 
   @override
   State<BarcodeScannerPage> createState() => _BarcodeScannerPageState();
@@ -18,35 +20,59 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   String barcode = '';
   String customerId = '';
   String supplierId = '';
+  bool fromZebraDevice = false;
   @override
   void initState() {
     super.initState();
     _products = Future.value([]);
-    Future.microtask(() async {
-      var res = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SimpleBarcodeScannerPage(),
-        ),
-      );
+    if (widget.barcode != null) {
+      Future.microtask(() async {
+        customerId =
+            await secureStorage.readSecureData(SecureStorageKeys.customer) ??
+                "";
+        supplierId =
+            await secureStorage.readSecureData(SecureStorageKeys.supplier) ??
+                "";
 
-      customerId =
-          await secureStorage.readSecureData(SecureStorageKeys.customer) ?? "";
-      supplierId =
-          await secureStorage.readSecureData(SecureStorageKeys.supplier) ?? "";
-
-      setState(() {
-        if (res is String) {
-          if (res != "-1") {
-            barcode = res;
-            _products = getProducts(
-                barcode: barcode,
-                customerId: customerId,
-                supplierId: supplierId);
-          }
-        }
+        setState(() {
+          fromZebraDevice = true;
+          barcode = widget.barcode!;
+          _products = getProducts(
+              barcode: widget.barcode!,
+              customerId: customerId,
+              supplierId: supplierId);
+        });
       });
-    });
+    } else {
+      Future.microtask(() async {
+        var res = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SimpleBarcodeScannerPage(),
+          ),
+        );
+
+        customerId =
+            await secureStorage.readSecureData(SecureStorageKeys.customer) ??
+                "";
+        supplierId =
+            await secureStorage.readSecureData(SecureStorageKeys.supplier) ??
+                "";
+
+        setState(() {
+          if (res is String) {
+            if (res != "-1") {
+              fromZebraDevice = false;
+              barcode = res;
+              _products = getProducts(
+                  barcode: barcode,
+                  customerId: customerId,
+                  supplierId: supplierId);
+            }
+          }
+        });
+      });
+    }
   }
 
   Future<void> _refreshProducts() async {
@@ -186,8 +212,15 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/boxallotment",
-                      arguments: product);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BoxAllotmentPage(
+                        productModel: product,
+                        fromZebraScanner: fromZebraDevice,
+                      ),
+                    ),
+                  );
                 },
                 label: const Text("Scan"),
                 icon: const Icon(Icons.qr_code),

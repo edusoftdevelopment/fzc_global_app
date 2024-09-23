@@ -25,14 +25,9 @@ class _DashboardState extends State<Dashboard> {
 
   final List<Map<String, dynamic>> items = [
     {
-      "title": "Parts",
-      "icon": Icons.settings,
-      "routeUrl": "/chooseoptions",
-    },
-    {
-      "title": "Zebra Device Scanner",
+      "title": "Scanner",
       "icon": Icons.barcode_reader,
-      "routeUrl": "/zebratouchcomputerscanner",
+      "routeUrl": "/chooseoptions",
     },
   ];
 

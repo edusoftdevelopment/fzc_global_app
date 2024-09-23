@@ -1,3 +1,4 @@
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fzc_global_app/pages/login_page.dart';
 import 'package:fzc_global_app/pages/tabs/tabs_navigation.dart';
 import 'package:fzc_global_app/utils/constants.dart';
@@ -8,7 +9,7 @@ class CustomSplashScreen extends StatefulWidget {
   const CustomSplashScreen({super.key});
 
   @override
-  _CustomSplashScreenState createState() => _CustomSplashScreenState();
+  State<CustomSplashScreen> createState() => _CustomSplashScreenState();
 }
 
 class _CustomSplashScreenState extends State<CustomSplashScreen>
@@ -39,21 +40,43 @@ class _CustomSplashScreenState extends State<CustomSplashScreen>
   }
 
   void _checkTokenAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 3));
-    SecureStorage secureStorage =
-        SecureStorage(); // Simulate a delay for splash screen
-    String? token = "token";
+    try {
+      await Future.delayed(const Duration(seconds: 3));
+      SecureStorage secureStorage = SecureStorage();
+      String token =
+          await secureStorage.readSecureData(SecureStorageKeys.userId) ?? "";
 
-    if (token.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const TabsNavigation()),
+      if (token.isNotEmpty) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TabsNavigation()),
+          );
+        }
+      } else {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+          );
+        }
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Something went wrong please login again!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: const Color.fromARGB(255, 238, 4, 16),
+        textColor: Colors.white,
+        fontSize: 16.0,
       );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      }
     }
   }
 
