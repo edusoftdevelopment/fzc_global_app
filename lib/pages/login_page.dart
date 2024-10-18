@@ -30,11 +30,11 @@ class _LoginPageState extends State<LoginPage> {
             await loginUser(emailController.text, passwordController.text);
 
         SecureStorage secureStorage = SecureStorage();
-        secureStorage.writeSecureData(
+        await secureStorage.writeSecureData(
             SecureStorageKeys.userId, response.loginId.toString());
-        secureStorage.writeSecureData(
+        await secureStorage.writeSecureData(
             SecureStorageKeys.email, response.emailAddress);
-        secureStorage.writeSecureData(
+        await secureStorage.writeSecureData(
             SecureStorageKeys.username, response.userName);
         if (mounted) {
           Navigator.pushReplacement(

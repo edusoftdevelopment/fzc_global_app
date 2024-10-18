@@ -56,8 +56,10 @@ Future<APIResponse> addProduct(ProductModel product, String barCode,
     int updatedQuantity, String from) async {
   String apiUrl = '${APIConstants.baseUrl}/BarcodeAllotment/AddBoxAllotment';
 
+  String modifiedBarCode = barCode.trim().substring(0, 12);
+
   Map<String, dynamic> jsonData =
-      product.toJson(barCode.trim(), updatedQuantity, from);
+      product.toJson(modifiedBarCode, updatedQuantity, from);
 
   try {
     var response = await http.post(

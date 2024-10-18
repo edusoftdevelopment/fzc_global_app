@@ -5,7 +5,6 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datawedge/flutter_datawedge.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fzc_global_app/api/common_api.dart';
 import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/pages/barcode_scanner_page.dart';
 import 'package:fzc_global_app/providers/common_data_provider.dart';
