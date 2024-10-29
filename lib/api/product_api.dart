@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:fzc_global_app/models/product_model.dart';
+import 'package:fzc_global_app/utils/barcode_manager.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,8 +13,13 @@ Future<List<ProductModel>> getProducts(
     String queryParams = "";
 
     if (barcode != "" && barcode != null) {
-      queryParams += "&Barcode=${barcode.trim()}";
+      var modifiedBarCode = BarcodeManager.parseBarcode(barcode);
+
+      if (modifiedBarCode != "" && modifiedBarCode != null) {
+        queryParams += "&Barcode=$modifiedBarCode";
+      }
     }
+
     if (customerId != "" && customerId != null) {
       queryParams += "&CustomerID=${customerId.trim()}";
     }
@@ -56,29 +62,33 @@ Future<APIResponse> addProduct(ProductModel product, String barCode,
     int updatedQuantity, String from) async {
   String apiUrl = '${APIConstants.baseUrl}/BarcodeAllotment/AddBoxAllotment';
 
-  String modifiedBarCode = barCode.trim().substring(0, 12);
+  var modifiedBarCode = BarcodeManager.parseBarcode(barCode);
 
-  Map<String, dynamic> jsonData =
-      product.toJson(modifiedBarCode, updatedQuantity, from);
+  if (modifiedBarCode == null) {
+    return APIResponse(error: "Invalid Barcode", success: false);
+  } else {
+    Map<String, dynamic> jsonData =
+        product.toJson(modifiedBarCode, updatedQuantity, from);
 
-  try {
-    var response = await http.post(
-      Uri.parse(apiUrl),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(jsonData),
-    );
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseBody = jsonDecode(response.body);
+    try {
+      var response = await http.post(
+        Uri.parse(apiUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(jsonData),
+      );
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseBody = jsonDecode(response.body);
 
-      APIResponse apiResponse = APIResponse(
-          error: responseBody['error'], success: responseBody['success']);
-      return apiResponse;
-    } else {
-      throw Exception("Something went wrong...");
+        APIResponse apiResponse = APIResponse(
+            error: responseBody['error'], success: responseBody['success']);
+        return apiResponse;
+      } else {
+        throw Exception("Something went wrong...");
+      }
+    } catch (e) {
+      throw Exception("Something went wrong...$e");
     }
-  } catch (e) {
-    throw Exception("Something went wrong...$e");
   }
 }

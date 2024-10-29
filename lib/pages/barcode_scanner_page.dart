@@ -264,9 +264,9 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          "No products found!",
-                          style: TextStyle(fontSize: 20),
+                        Text(
+                          "No products found with this barcode: $barcode",
+                          style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(
                           height: 10,
@@ -297,9 +297,9 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          "No products found!",
-                          style: TextStyle(fontSize: 20),
+                        Text(
+                          "No products found with this barcode: $barcode",
+                          style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(
                           height: 10,
