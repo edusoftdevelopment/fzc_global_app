@@ -21,6 +21,9 @@ class _DashboardState extends State<Dashboard> {
   Future<void> initLoad() async {
     await secureStorage.writeSecureData(SecureStorageKeys.customer, "");
     await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
+    await secureStorage.writeSecureData(SecureStorageKeys.supplierOrderId, "");
+    await secureStorage.writeSecureData(SecureStorageKeys.dateFrom, "");
+    await secureStorage.writeSecureData(SecureStorageKeys.dateTo, "");
   }
 
   final List<Map<String, dynamic>> items = [

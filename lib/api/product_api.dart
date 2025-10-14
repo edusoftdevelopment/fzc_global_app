@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:fzc_global_app/models/product_model.dart';
 import 'package:fzc_global_app/utils/barcode_manager.dart';
 import 'package:fzc_global_app/utils/constants.dart';
@@ -8,7 +9,10 @@ Future<List<ProductModel>> getProducts(
     {String? barcode = "",
     String? customerId = "",
     String? supplierId = "",
-    String? itemCode = ""}) async {
+    String? itemCode = "",
+    String? supplierOrderId = "",
+    String? dateFrom = "",
+    String? dateTo = ""}) async {
   try {
     String queryParams = "";
 
@@ -28,6 +32,16 @@ Future<List<ProductModel>> getProducts(
     }
     if (itemCode != "" && itemCode != null) {
       queryParams += "&ItemCode=${itemCode.trim()}";
+    }
+
+    if (supplierOrderId != "" && supplierOrderId != null) {
+      queryParams += "&SupplierOrderID=${supplierOrderId.trim()}";
+    }
+
+    if ((dateFrom != "" && dateFrom != null) &&
+        (dateTo != "" && dateTo != null)) {
+      queryParams += "&DateFrom=$dateFrom";
+      queryParams += "&DateTo=$dateTo";
     }
 
     final response = await http.post(
@@ -78,6 +92,7 @@ Future<APIResponse> addProduct(ProductModel product, String barCode,
         },
         body: jsonEncode(jsonData),
       );
+      log(jsonEncode(jsonData));
       if (response.statusCode == 200) {
         Map<String, dynamic> responseBody = jsonDecode(response.body);
 

@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 class DropDownItem {
   String label;
   String value;
@@ -7,4 +8,7 @@ class DropDownItem {
     return DropDownItem(
         label: json['label'] ?? "", value: json['value'].toString());
   }
+
+  @override
+  String toString() => 'DropDownItem(label: $label, value: $value)';
 }

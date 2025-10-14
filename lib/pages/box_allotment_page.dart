@@ -12,8 +12,12 @@ import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 class BoxAllotmentPage extends StatefulWidget {
   final ProductModel productModel;
   final bool fromZebraScanner;
+  final String from;
   const BoxAllotmentPage(
-      {super.key, required this.productModel, this.fromZebraScanner = false});
+      {super.key,
+      required this.productModel,
+      this.fromZebraScanner = false,
+      this.from = "BARCODE"});
 
   @override
   State<BoxAllotmentPage> createState() => _BoxAllotmentPageState();
@@ -29,6 +33,7 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
   String result = "";
   bool _isError = false;
   bool _isDeviceScanning = false;
+  bool _isProcessingScan = false;
 
   String message = "";
   late ProductModel product;
@@ -62,12 +67,8 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
           ),
         );
         if (res is String) {
-          setState(() {
-            if (res != "-1") {
-              result = res;
-            }
-          });
           if (res != "-1") {
+            result = res;
             _addAllotment();
           } else {
             if (mounted) {
@@ -92,20 +93,29 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
     }
   }
 
-  void onScanResult(ScanResult event) {
+  void onScanResult(ScanResult event) async {
+    if (_isProcessingScan) return;
+
+    _isProcessingScan = true;
+
     String barcode = event.data;
-    setState(() {
-      result = barcode;
-    });
-    _addAllotment();
-    setState(() {
-      _isDeviceScanning = false;
+
+    result = barcode;
+
+    fdw.scannerControl(false);
+    _addAllotment().then((_) {
+      setState(() {
+        _isDeviceScanning = false;
+        _isProcessingScan = false;
+        fdw.scannerControl(true);
+      });
     });
   }
 
   @override
   void dispose() {
     scanResultSubscription.cancel();
+
     super.dispose();
   }
   //* Scanner Config End
@@ -141,7 +151,7 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
         }
       } else {
         var response = await addProduct(
-            product, result, product.updatedQuantity, "BARCODE");
+            product, result, product.updatedQuantity, widget.from);
 
         if (response.success) {
           Fluttertoast.showToast(

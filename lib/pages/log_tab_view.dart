@@ -77,7 +77,7 @@ class _ActionResultLogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(actionResult.command.split('.').last),
-      subtitle: Text(actionResult.logContent),
+      subtitle: const Text(""),
     );
   }
 }
@@ -110,14 +110,14 @@ class _ScannerStatusLogTile extends StatelessWidget {
   }
 }
 
-extension ActionResultLog on ActionResult {
-  String get logContent {
-    return switch (DatawedgeApiTargets.fromString(command)) {
-      DatawedgeApiTargets.softScanTrigger => result,
-      DatawedgeApiTargets.scannerPlugin =>
-        result == "SUCCESS" ? result : '${resultInfo!['RESULT_CODE']}',
-      DatawedgeApiTargets.getProfiles => '${resultInfo!['profiles']}',
-      DatawedgeApiTargets.getActiveProfile => '${resultInfo!['activeProfile']}',
-    };
-  }
-}
+// extension ActionResultLog on ActionResult {
+//   String get logContent {
+//     return switch (DatawedgeApiTargets.fromString(command)) {
+//       DatawedgeApiTargets.softScanTrigger => result,
+//       DatawedgeApiTargets.scannerPlugin =>
+//         result == "SUCCESS" ? result : '${resultInfo!['RESULT_CODE']}',
+//       DatawedgeApiTargets.getProfiles => '${resultInfo!['profiles']}',
+//       DatawedgeApiTargets.getActiveProfile => '${resultInfo!['activeProfile']}',
+//     };
+//   }
+// }

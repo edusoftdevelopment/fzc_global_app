@@ -14,8 +14,9 @@ class Constants {
 }
 
 class APIConstants {
-  static const String baseUrl = 'https://apsze.world:487';
-  // static const String baseUrl = 'http://192.168.7.7:467';
+  // static const String baseUrl = 'http://192.168.9.2:467';
+  static const String baseUrl = 'http://192.168.7.7:131';
+  // static const String baseUrl = 'https://apsze.world:493';
 }
 
 class SecureStorageKeys {
@@ -25,4 +26,7 @@ class SecureStorageKeys {
   static const String customer = "CustomerID";
   static const String supplier = "SupplierID";
   static const String selectedDevice = "selectedDevice";
+  static const String supplierOrderId = "supplierOrderId";
+  static const String dateFrom = "dateFrom";
+  static const String dateTo = "dateTo";
 }

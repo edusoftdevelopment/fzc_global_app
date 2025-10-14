@@ -1,6 +1,7 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:fzc_global_app/api/common_api.dart';
+import 'package:fzc_global_app/components/data_picker.dart';
 import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
@@ -22,6 +23,8 @@ class _ChooseScanOptionPageState extends State<ChooseScanOptionPage> {
   final List<DropDownItem> loadingItem = [
     DropDownItem(label: "Loading...", value: "Loading...")
   ];
+  DateTime? dateFrom;
+  DateTime? dateTo;
 
   @override
   void initState() {
@@ -112,6 +115,20 @@ class _ChooseScanOptionPageState extends State<ChooseScanOptionPage> {
                             fontSize: 16, fontWeight: FontWeight.bold),
                       )
                     ] else ...[
+                      DatePickerComponent(
+                        labelText: "Date From",
+                        voucherDate: dateFrom,
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      DatePickerComponent(
+                        labelText: "Date To",
+                        voucherDate: dateFrom,
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
                       DropdownSearch<DropDownItem>(
                         popupProps: const PopupProps.menu(
                             showSearchBox: true,

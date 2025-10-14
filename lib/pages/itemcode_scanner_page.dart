@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fzc_global_app/api/product_api.dart';
 import 'package:fzc_global_app/models/product_model.dart';
+import 'package:fzc_global_app/pages/box_allotment_page.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
@@ -20,7 +23,10 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
   String itemCode = '';
   String customerId = '';
   String supplierId = '';
-
+  String supplierOrderId = '';
+  bool fromZebraScanner = false;
+  String formattedDateFrom = '';
+  String formattedDateTo = '';
   @override
   void initState() {
     super.initState();
@@ -33,6 +39,15 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
         await secureStorage.readSecureData(SecureStorageKeys.customer) ?? "";
     supplierId =
         await secureStorage.readSecureData(SecureStorageKeys.supplier) ?? "";
+    supplierOrderId =
+        await secureStorage.readSecureData(SecureStorageKeys.supplierOrderId) ??
+            "";
+    formattedDateFrom =
+        await secureStorage.readSecureData(SecureStorageKeys.dateFrom) ?? "";
+    formattedDateTo =
+        await secureStorage.readSecureData(SecureStorageKeys.dateTo) ?? "";
+
+    onScanThroughBarCodeClick();
   }
 
   Future<void> _refreshProducts() async {
@@ -40,7 +55,10 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
       _products = getProducts(
           itemCode: _searchController.text,
           supplierId: supplierId,
-          customerId: customerId);
+          customerId: customerId,
+          supplierOrderId: supplierOrderId,
+          dateFrom: formattedDateFrom,
+          dateTo: formattedDateTo);
     });
   }
 
@@ -50,7 +68,10 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
         _products = getProducts(
             itemCode: _searchController.text,
             supplierId: supplierId,
-            customerId: customerId);
+            customerId: customerId,
+            supplierOrderId: supplierOrderId,
+            dateFrom: formattedDateFrom,
+            dateTo: formattedDateTo);
       });
     }
   }
@@ -191,12 +212,22 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/itemcodeboxallotment",
-                      arguments: product);
+                  // Navigator.pushNamed(context, "/itemcodeboxallotment",
+                  //     arguments: product);
+                  log(product.toString());
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BoxAllotmentPage(
+                        productModel: product,
+                        fromZebraScanner: fromZebraScanner,
+                      ),
+                    ),
+                  );
                 },
-                label: const Text("Add"),
-                icon: const Icon(Icons.add),
-                iconAlignment: IconAlignment.end,
+                label: const Text("Scan"),
+                icon: const Icon(Icons.qr_code),
+                iconAlignment: IconAlignment.start,
                 style: TextButton.styleFrom(
                     // textStyle: const TextStyle(fontSize: 16),
                     backgroundColor: Colors.black,
@@ -207,6 +238,32 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
         ],
       ),
     );
+  }
+
+  void onScanThroughBarCodeClick() async {
+    try {
+      String selectedDevice = await secureStorage
+              .readSecureData(SecureStorageKeys.selectedDevice) ??
+          "";
+
+      if (selectedDevice == "zebra_scanner") {
+        fromZebraScanner = true;
+      } else if (selectedDevice == "mobile") {
+        fromZebraScanner = false;
+      } else {
+        fromZebraScanner = false;
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "$e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: const Color.fromARGB(255, 238, 4, 16),
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 
   @override
