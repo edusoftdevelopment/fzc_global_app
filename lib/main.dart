@@ -49,6 +49,10 @@ class MyApp extends StatelessWidget {
         "/dashboard": (context) => const CustomBottomNavigationBar(),
         "/auth/login": (context) => const LoginPage(),
         "/barcodescanner": (context) => const BarcodeScannerPage(),
+        "/dispatch-in-box": (context) =>
+            const BarcodeScannerPage(dispatchType: DispatchType.dispatchIn),
+        "/dispatch-out-box": (context) =>
+            const BarcodeScannerPage(dispatchType: DispatchType.dispatchOut),
         "/zebratouchcomputerscanner": (context) => const ChooseScanOptionPage(),
         "/itemcodescanner": (context) => const ItemcodeScannerPage(),
         "/itemcodeboxallotment": (context) =>

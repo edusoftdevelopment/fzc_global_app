@@ -92,3 +92,37 @@ Future<APIResponse> addProduct(ProductModel product, String barCode,
     }
   }
 }
+
+Future<APIResponse> barcodeAllotment(String barcode, bool status) async {
+  String apiUrl =
+      '${APIConstants.baseUrl}/BarcodeAllotment/UpdateGeneratedBarcodesDetail?Barcode=$barcode&status=$status';
+  // String apiUrl = '${APIConstants.baseUrl}/BarcodeAllotment';
+
+  var modifiedBarCode = BarcodeManager.parseBarcode(barcode);
+
+  if (modifiedBarCode == null) {
+    return APIResponse(error: "Invalid Barcode", success: false);
+  }
+
+  try {
+    var response = await http.post(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      // body: jsonEncode(jsonData),
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseBody = jsonDecode(response.body);
+
+      APIResponse apiResponse = APIResponse(
+          error: responseBody['error'], success: responseBody['success']);
+      return apiResponse;
+    } else {
+      throw Exception("Something went wrong...");
+    }
+  } catch (e) {
+    throw Exception("Something went wrong...$e");
+  }
+}

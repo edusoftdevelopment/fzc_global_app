@@ -29,6 +29,16 @@ class _DashboardState extends State<Dashboard> {
       "icon": Icons.barcode_reader,
       "routeUrl": "/chooseoptions",
     },
+    {
+      "title": "Dispatch In Box",
+      "icon": Icons.inbox,
+      "routeUrl": "/dispatch-in-box",
+    },
+    {
+      "title": "Dispatch Out Box",
+      "icon": Icons.outbox,
+      "routeUrl": "/dispatch-out-box",
+    },
   ];
 
   Widget cardTile(String title, IconData icon, String routeUrl) {

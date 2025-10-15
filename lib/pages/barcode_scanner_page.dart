@@ -5,10 +5,15 @@ import 'package:fzc_global_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+enum DispatchType { normal, dispatchIn, dispatchOut }
 
 class BarcodeScannerPage extends StatefulWidget {
   final String? barcode;
-  const BarcodeScannerPage({super.key, this.barcode});
+  final DispatchType dispatchType;
+  const BarcodeScannerPage(
+      {super.key, this.barcode, this.dispatchType = DispatchType.normal});
 
   @override
   State<BarcodeScannerPage> createState() => _BarcodeScannerPageState();
@@ -21,10 +26,53 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   String customerId = '';
   String supplierId = '';
   bool fromZebraDevice = false;
+
   @override
   void initState() {
     super.initState();
     _products = Future.value([]);
+
+    if (widget.dispatchType != DispatchType.normal) {
+      // For dispatch types, directly open scanner
+      _handleDispatchScanning();
+    } else {
+      // Normal flow for product scanning
+      _handleNormalScanning();
+    }
+  }
+
+  void _handleDispatchScanning() async {
+    if (widget.barcode != null) {
+      // From Zebra device
+      fromZebraDevice = true;
+      barcode = widget.barcode!;
+      Future.microtask(() => _showConfirmationDialog());
+    } else {
+      // From mobile scanner
+      Future.microtask(() async {
+        var res = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SimpleBarcodeScannerPage(),
+          ),
+        );
+
+        if (!mounted) return;
+
+        if (res is String && res != "-1") {
+          fromZebraDevice = false;
+          barcode = res;
+          _showConfirmationDialog();
+        } else {
+          // Navigator.of(context).pushNamed("/dashboard");
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+        }
+      });
+    }
+  }
+
+  void _handleNormalScanning() async {
     if (widget.barcode != null) {
       Future.microtask(() async {
         customerId =
@@ -75,6 +123,105 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         });
       });
     }
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(widget.dispatchType == DispatchType.dispatchIn
+              ? 'Dispatch In Box'
+              : 'Dispatch Out Box'),
+          content: Text(
+              'Do you want to proceed with ${widget.dispatchType == DispatchType.dispatchIn ? 'Dispatch In' : 'Dispatch Out'} for barcode: $barcode?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigator.of(context).pushNamed("/dashboard");
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _processDispatchAllotment();
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _processDispatchAllotment() async {
+    try {
+      bool status = widget.dispatchType == DispatchType.dispatchOut;
+      var response = await barcodeAllotment(barcode, status);
+
+      if (response.success) {
+        Fluttertoast.showToast(
+          msg: "Alloted successfully!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+      } else {
+        _showErrorDialog(response.error);
+      }
+    } catch (e) {
+      _showErrorDialog("Something went wrong: $e");
+    }
+  }
+
+  void _showErrorDialog(String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(errorMessage),
+              const SizedBox(height: 10),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigator.of(context).pushNamed("/dashboard");
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Also show toast for error
+    Fluttertoast.showToast(
+      msg: errorMessage,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: const Color.fromARGB(255, 238, 4, 16),
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   Future<void> _refreshProducts() async {
@@ -241,108 +388,129 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    String title = 'Parts';
+    if (widget.dispatchType == DispatchType.dispatchIn) {
+      title = 'Dispatch In Box';
+    } else if (widget.dispatchType == DispatchType.dispatchOut) {
+      title = 'Dispatch Out Box';
+    }
+
     return PopScope(
       canPop: false,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Parts'),
+          title: Text(title),
           leading: BackButton(
             color: const Color.fromARGB(255, 0, 0, 0),
             onPressed: () {
-              Navigator.of(context).pushNamed("/chooseoptions");
+              if (widget.dispatchType != DispatchType.normal) {
+                // Navigator.of(context).pushNamed("/dashboard");
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil("/dashboard", (route) => false);
+              } else {
+                Navigator.of(context).pushNamed("/chooseoptions");
+              }
             },
           ),
         ),
-        body: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: FutureBuilder(
-              future: _products,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "No products found with this barcode: $barcode",
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pushNamed("/chooseoptions");
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            decoration: BoxDecoration(
-                                color: Constants.primaryColor,
-                                borderRadius: BorderRadius.circular(10)),
-                            child: const Text(
-                              "Go Back",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 18),
+        body: widget.dispatchType != DispatchType.normal
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: FutureBuilder(
+                    future: _products,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "No products found with this barcode: $barcode",
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .pushNamed("/chooseoptions");
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  decoration: BoxDecoration(
+                                      color: Constants.primaryColor,
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: const Text(
+                                    "Go Back",
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 18),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "No products found with this barcode: $barcode",
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .pushNamed("/chooseoptions");
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  decoration: BoxDecoration(
+                                      color: Constants.primaryColor,
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: const Text(
+                                    "Go Back",
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 18),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        );
+                      } else {
+                        return RefreshIndicator(
+                          onRefresh: _refreshProducts,
+                          child: ListView.separated(
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return productCartd(snapshot.data![index]);
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(
+                              height: 10,
                             ),
                           ),
-                        )
-                      ],
-                    ),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "No products found with this barcode: $barcode",
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pushNamed("/chooseoptions");
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            decoration: BoxDecoration(
-                                color: Constants.primaryColor,
-                                borderRadius: BorderRadius.circular(10)),
-                            child: const Text(
-                              "Go Back",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 18),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  );
-                } else {
-                  return RefreshIndicator(
-                    onRefresh: _refreshProducts,
-                    child: ListView.separated(
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return productCartd(snapshot.data![index]);
-                      },
-                      separatorBuilder: (context, index) => const SizedBox(
-                        height: 10,
-                      ),
-                    ),
-                  );
-                }
-              }),
-        ),
+                        );
+                      }
+                    }),
+              ),
       ),
     );
   }
