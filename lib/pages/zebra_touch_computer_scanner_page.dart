@@ -207,15 +207,15 @@ class _ZebraTouchComputerScannerPageState
                             showSearchBox: true,
                             menuProps:
                                 MenuProps(backgroundColor: Colors.white)),
-                        items: customers,
+                        items: (filter, infiniteScrollProps) async => customers,
                         itemAsString: (DropDownItem u) => u.label,
-                        dropdownDecoratorProps: const DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
+                        compareFn: (DropDownItem item1, DropDownItem item2) =>
+                            item1.value == item2.value,
+                        decoratorProps: const DropDownDecoratorProps(
+                          decoration: InputDecoration(
                               labelText: "Customer",
                               hintText: "Select Customer"),
                         ),
-                        clearButtonProps:
-                            const ClearButtonProps(isVisible: true),
                         onChanged: onCustomerChanged,
                         selectedItem: _selectedCustomer,
                       ),
@@ -227,16 +227,16 @@ class _ZebraTouchComputerScannerPageState
                             showSearchBox: true,
                             menuProps:
                                 MenuProps(backgroundColor: Colors.white)),
-                        items: suppliers,
+                        items: (filter, infiniteScrollProps) async => suppliers,
                         itemAsString: (DropDownItem u) => u.label,
-                        dropdownDecoratorProps: const DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
+                        compareFn: (DropDownItem item1, DropDownItem item2) =>
+                            item1.value == item2.value,
+                        decoratorProps: const DropDownDecoratorProps(
+                          decoration: InputDecoration(
                             labelText: "Supplier",
                             hintText: "Select Supplier",
                           ),
                         ),
-                        clearButtonProps:
-                            const ClearButtonProps(isVisible: true),
                         onChanged: onSupplierChanged,
                         selectedItem: _selectedSupplier,
                       ),

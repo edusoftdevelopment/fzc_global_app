@@ -120,13 +120,15 @@ class _UserAccountPageState extends State<UserAccountPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             DropdownSearch<DropDownItem>(
-            popupProps: const PopupProps.menu(
+              popupProps: const PopupProps.menu(
                   showSearchBox: true,
                   menuProps: MenuProps(backgroundColor: Colors.white)),
-              items: _deviceOptions,
+              items: (filter, infiniteScrollProps) async => _deviceOptions,
               itemAsString: (DropDownItem u) => u.label,
-              dropdownDecoratorProps: const DropDownDecoratorProps(
-                dropdownSearchDecoration: InputDecoration(
+              compareFn: (DropDownItem item1, DropDownItem item2) =>
+                  item1.value == item2.value,
+              decoratorProps: const DropDownDecoratorProps(
+                decoration: InputDecoration(
                   labelText: "Scanner",
                   hintText: "Choose a scanner...",
                 ),

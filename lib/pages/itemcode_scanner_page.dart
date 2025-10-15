@@ -62,7 +62,7 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               spreadRadius: 1,
               blurRadius: 2,
               offset: const Offset(0, 3),
@@ -253,7 +253,7 @@ class _ItemcodeScannerPageState extends State<ItemcodeScannerPage> {
                       decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withValues(alpha: 0.5),
                               spreadRadius: 2,
                               blurRadius: 2,
                             ),

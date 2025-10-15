@@ -52,6 +52,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           ),
         );
 
+        if (!mounted) return;
+
         customerId =
             await secureStorage.readSecureData(SecureStorageKeys.customer) ??
                 "";
@@ -89,7 +91,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               spreadRadius: 1,
               blurRadius: 2,
               offset: const Offset(0, 3),

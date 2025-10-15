@@ -50,7 +50,7 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
           _startScanning();
         });
       }).catchError((e) {
-        print("Error initializing scanner: $e");
+        debugPrint("Error initializing scanner: $e");
       });
       //* Scanner Config End
     } else {
@@ -61,6 +61,9 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
             builder: (context) => const SimpleBarcodeScannerPage(),
           ),
         );
+
+        if (!mounted) return;
+
         if (res is String) {
           setState(() {
             if (res != "-1") {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 
 class TextInput extends StatelessWidget {
-  final controller;
+  final TextEditingController controller;
   final String hintText;
   final bool obscureText;
 
