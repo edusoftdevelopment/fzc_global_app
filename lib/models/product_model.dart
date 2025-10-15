@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:intl/intl.dart';
 
 class ProductModel {
@@ -81,5 +82,10 @@ class ProductModel {
       'Type': type,
       'From': from,
     };
+  }
+
+  @override
+  String toString() {
+    return 'ProductModel(itemCode: $itemCode, customerName: $customerName, customerID: $customerID, voucherID: $voucherID, voucherDetailID: $voucherDetailID, saleOrderID: $saleOrderID, saleOrderDetailID: $saleOrderDetailID, make: $make, quantity: $quantity, itemName: $itemName, barcode: $barcode, price: $price, type: $type, updatedQuantity: $updatedQuantity, supplierOrderNo: $supplierOrderNo, orderNo: $orderNo)';
   }
 }

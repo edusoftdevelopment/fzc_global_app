@@ -77,7 +77,7 @@ class _ActionResultLogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(actionResult.command.split('.').last),
-      subtitle: Text(actionResult.logContent),
+      subtitle: const Text(""),
     );
   }
 }

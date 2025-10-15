@@ -25,6 +25,9 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   String barcode = '';
   String customerId = '';
   String supplierId = '';
+  String supplierOrderId = '';
+  String formattedDateFrom = '';
+  String formattedDateTo = '';
   bool fromZebraDevice = false;
 
   @override
@@ -81,6 +84,14 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         supplierId =
             await secureStorage.readSecureData(SecureStorageKeys.supplier) ??
                 "";
+        supplierOrderId = await secureStorage
+                .readSecureData(SecureStorageKeys.supplierOrderId) ??
+            "";
+        formattedDateFrom =
+            await secureStorage.readSecureData(SecureStorageKeys.dateFrom) ??
+                "";
+        formattedDateTo =
+            await secureStorage.readSecureData(SecureStorageKeys.dateTo) ?? "";
 
         setState(() {
           fromZebraDevice = true;
@@ -88,7 +99,10 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           _products = getProducts(
               barcode: widget.barcode!,
               customerId: customerId,
-              supplierId: supplierId);
+              supplierId: supplierId,
+              supplierOrderId: supplierOrderId,
+              dateFrom: formattedDateFrom,
+              dateTo: formattedDateTo);
         });
       });
     } else {
@@ -108,6 +122,14 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         supplierId =
             await secureStorage.readSecureData(SecureStorageKeys.supplier) ??
                 "";
+        supplierOrderId = await secureStorage
+                .readSecureData(SecureStorageKeys.supplierOrderId) ??
+            "";
+        formattedDateFrom =
+            await secureStorage.readSecureData(SecureStorageKeys.dateFrom) ??
+                "";
+        formattedDateTo =
+            await secureStorage.readSecureData(SecureStorageKeys.dateTo) ?? "";
 
         setState(() {
           if (res is String) {
@@ -117,7 +139,10 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               _products = getProducts(
                   barcode: barcode,
                   customerId: customerId,
-                  supplierId: supplierId);
+                  supplierId: supplierId,
+                  supplierOrderId: supplierId,
+                  dateFrom: formattedDateFrom,
+                  dateTo: formattedDateTo);
             }
           }
         });
@@ -227,7 +252,12 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   Future<void> _refreshProducts() async {
     setState(() {
       _products = getProducts(
-          barcode: barcode, customerId: customerId, supplierId: supplierId);
+          barcode: barcode,
+          customerId: customerId,
+          supplierId: supplierId,
+          supplierOrderId: supplierOrderId,
+          dateFrom: formattedDateFrom,
+          dateTo: formattedDateTo);
     });
   }
 

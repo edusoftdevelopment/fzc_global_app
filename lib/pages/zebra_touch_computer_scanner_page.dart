@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datawedge/flutter_datawedge.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:fzc_global_app/components/data_picker.dart';
 import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/pages/barcode_scanner_page.dart';
 import 'package:fzc_global_app/providers/common_data_provider.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class ZebraTouchComputerScannerPage extends StatefulWidget {
@@ -25,7 +28,7 @@ class _ZebraTouchComputerScannerPageState
   //* Scanner Config
   late FlutterDataWedge fdw;
   late final StreamSubscription<ScanResult> scanResultSubscription;
-  Future<void>? initScannerResult;
+  bool? initScannerResult;
   //* Scanner Config End
 
   final SecureStorage secureStorage = SecureStorage();
@@ -34,9 +37,15 @@ class _ZebraTouchComputerScannerPageState
 
   late List<DropDownItem> customers;
   late List<DropDownItem> suppliers;
+  late List<DropDownItem> supplierOrders;
 
   DropDownItem? _selectedCustomer;
   DropDownItem? _selectedSupplier;
+  DropDownItem? _selectedSupplierOrderID;
+
+  DateTime? dateTo = DateTime.now();
+  DateTime? dateFrom = DateTime(
+      DateTime.now().year, DateTime.now().month - 1, DateTime.now().day);
 
   final List<DropDownItem> loadingItem = [
     DropDownItem(label: "Loading...", value: "Loading...")
@@ -45,8 +54,13 @@ class _ZebraTouchComputerScannerPageState
   @override
   void initState() {
     //* Scanner Config
-    initScannerResult = initScanner();
-    scanResultSubscription = fdw.onScanResult.listen(onScanResult);
+    Future.microtask(() async {
+      initScannerResult = await initScanner();
+
+      if (initScannerResult == true) {
+        scanResultSubscription = fdw.onScanResult.listen(onScanResult);
+      }
+    });
     //* Scanner Config End
 
     _getSelectedDropdownData();
@@ -59,6 +73,13 @@ class _ZebraTouchComputerScannerPageState
         await secureStorage.readSecureData(SecureStorageKeys.customer) ?? "";
     String storedSupplier =
         await secureStorage.readSecureData(SecureStorageKeys.supplier) ?? "";
+    String storedSupplierOrderID =
+        await secureStorage.readSecureData(SecureStorageKeys.supplierOrderId) ??
+            "";
+    String storedDataFrom =
+        await secureStorage.readSecureData(SecureStorageKeys.dateFrom) ?? "";
+    String storedDataTo =
+        await secureStorage.readSecureData(SecureStorageKeys.dateTo) ?? "";
 
     if (storedSupplier != "") {
       setState(() {
@@ -79,6 +100,27 @@ class _ZebraTouchComputerScannerPageState
             value: storedCustomer);
       });
     }
+
+    if (storedSupplierOrderID != "") {
+      setState(() {
+        _selectedSupplierOrderID = DropDownItem(
+            label: supplierOrders
+                .firstWhere((item) => item.value == storedSupplierOrderID)
+                .label,
+            value: storedSupplierOrderID);
+      });
+    }
+
+    if (storedDataFrom != "") {
+      setState(() {
+        dateFrom = DateFormat("dd-MMM-yyyy").parse(storedDataFrom);
+      });
+    }
+    if (storedDataTo != "") {
+      setState(() {
+        dateTo = DateFormat("dd-MMM-yyyy").parse(storedDataTo);
+      });
+    }
   }
 
   Future<void> onCustomerChanged(DropDownItem? customer) async {
@@ -94,8 +136,50 @@ class _ZebraTouchComputerScannerPageState
     if (supplier != null) {
       await secureStorage.writeSecureData(
           SecureStorageKeys.supplier, supplier.value);
+
+      if (mounted) {
+        await Provider.of<CommonDataProvider>(context, listen: false)
+            .fetchSupplierOrders(int.parse(supplier.value));
+      }
     } else {
       await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
+
+      if (mounted) {
+        await Provider.of<CommonDataProvider>(context, listen: false)
+            .fetchSupplierOrders(0);
+      }
+    }
+  }
+
+  Future<void> onSupplierOrderChanged(DropDownItem? supplierOrderID) async {
+    if (supplierOrderID != null) {
+      await secureStorage.writeSecureData(
+          SecureStorageKeys.supplierOrderId, supplierOrderID.value);
+    } else {
+      await secureStorage.writeSecureData(
+          SecureStorageKeys.supplierOrderId, "");
+    }
+  }
+
+  Future<void> onDateFromChange(DateTime? currentDateFrom) async {
+    if (currentDateFrom != null) {
+      await secureStorage.writeSecureData(SecureStorageKeys.dateFrom,
+          DateFormat('dd-MMM-yyyy').format(currentDateFrom));
+    } else {
+      await secureStorage.writeSecureData(
+          SecureStorageKeys.dateFrom,
+          DateFormat('dd-MMM-yyyy').format(DateTime(DateTime.now().year,
+              DateTime.now().month - 1, DateTime.now().day)));
+    }
+  }
+
+  Future<void> onDateToChange(DateTime? currentDateTo) async {
+    if (currentDateTo != null) {
+      await secureStorage.writeSecureData(SecureStorageKeys.dateTo,
+          DateFormat('dd-MMM-yyyy').format(currentDateTo));
+    } else {
+      await secureStorage.writeSecureData(SecureStorageKeys.dateTo,
+          DateFormat('dd-MMM-yyyy').format(DateTime.now()));
     }
   }
 
@@ -134,11 +218,14 @@ class _ZebraTouchComputerScannerPageState
   }
 
   //* Scanner Config
-  Future<void> initScanner() async {
+  Future<bool> initScanner() async {
     if (Platform.isAndroid) {
       fdw = FlutterDataWedge();
       await fdw.initialize();
       await fdw.createDefaultProfile(profileName: "FZC Global App");
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -165,6 +252,7 @@ class _ZebraTouchComputerScannerPageState
   Widget build(BuildContext context) {
     customers = Provider.of<CommonDataProvider>(context).customers;
     suppliers = Provider.of<CommonDataProvider>(context).suppliers;
+    supplierOrders = Provider.of<CommonDataProvider>(context).supplierOrders;
 
     return PopScope(
       canPop: false,

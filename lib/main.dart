@@ -36,6 +36,8 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Constants.bgColor,
           textTheme: const TextTheme(
               bodyMedium: TextStyle(color: Constants.whiteColor)),
+          datePickerTheme:
+              const DatePickerThemeData(backgroundColor: Colors.white),
           appBarTheme: const AppBarTheme(
               backgroundColor: Constants.secondaryColor,
               titleTextStyle: TextStyle(
