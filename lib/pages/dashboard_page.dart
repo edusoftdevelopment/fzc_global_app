@@ -1,6 +1,8 @@
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
+import 'package:flutter_datawedge/flutter_datawedge.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -11,6 +13,7 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final SecureStorage secureStorage = SecureStorage();
+  final FlutterDataWedge fdw = FlutterDataWedge();
 
   @override
   void initState() {
@@ -24,6 +27,36 @@ class _DashboardState extends State<Dashboard> {
     await secureStorage.writeSecureData(SecureStorageKeys.supplierOrderId, "");
     await secureStorage.writeSecureData(SecureStorageKeys.dateFrom, "");
     await secureStorage.writeSecureData(SecureStorageKeys.dateTo, "");
+  }
+
+  void onScanThroughBarCodeClick(String routeUrl) async {
+    try {
+      String selectedDevice = await secureStorage
+              .readSecureData(SecureStorageKeys.selectedDevice) ??
+          "";
+
+      if (selectedDevice == "zebra_scanner") {
+        fdw.scannerControl(true);
+      } else if (selectedDevice == "mobile") {
+        if (mounted) {
+          Navigator.of(context).pushNamed(routeUrl);
+        }
+      } else {
+        if (mounted) {
+          Navigator.of(context).pushNamed(routeUrl);
+        }
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "$e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: const Color.fromARGB(255, 238, 4, 16),
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
 
   final List<Map<String, dynamic>> items = [
@@ -49,7 +82,12 @@ class _DashboardState extends State<Dashboard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          Navigator.pushNamed(context, routeUrl);
+          if (routeUrl == "/dispatch-in-box" ||
+              routeUrl == "/dispatch-out-box") {
+            onScanThroughBarCodeClick(routeUrl);
+          } else {
+            Navigator.pushNamed(context, routeUrl);
+          }
         },
         child: Container(
           padding: const EdgeInsets.all(10),
@@ -58,7 +96,7 @@ class _DashboardState extends State<Dashboard> {
             color: Constants.secondaryColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: Colors.black.withOpacity(0.2),
                 spreadRadius: 2,
                 blurRadius: 7,
                 offset: const Offset(0, 3),
