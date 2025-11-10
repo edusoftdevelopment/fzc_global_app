@@ -14,8 +14,9 @@ class Constants {
 }
 
 class APIConstants {
-  // static const String baseUrl = 'http://192.168.9.2:467';
-  static const String baseUrl = 'http://192.168.7.7:131';
+  static const String baseUrl = 'http://192.168.7.9:112';
+  // static const String baseUrl = 'http://192.168.7.7:131';
+  // static const String baseUrl = 'https://apsze.world:487'; // Updated base URL
   // static const String baseUrl = 'https://apsze.world:493';
 }
 
