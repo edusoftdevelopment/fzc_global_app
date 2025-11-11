@@ -1,9 +1,20 @@
-import 'package:fzc_global_app/utils/constants.dart';
+// Import statements for core Flutter functionality
+import 'dart:async';
+import 'dart:io';
+
+// Import statements for Flutter UI components
 import 'package:flutter/material.dart';
-import 'package:fzc_global_app/utils/secure_storage.dart';
+
+// Import statements for external packages
 import 'package:flutter_datawedge/flutter_datawedge.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+// Import statements for local app modules
+import 'package:fzc_global_app/pages/barcode_scanner_page.dart';
+import 'package:fzc_global_app/utils/constants.dart';
+import 'package:fzc_global_app/utils/secure_storage.dart';
+
+// Main Dashboard widget class
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
@@ -12,23 +23,101 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  // Service instances and dependencies
   final SecureStorage secureStorage = SecureStorage();
-  final FlutterDataWedge fdw = FlutterDataWedge();
+  late FlutterDataWedge fdw;
 
+  // Stream subscription for barcode scanning
+  late final StreamSubscription<ScanResult> scanResultSubscription;
+
+  // Scanner initialization state
+  bool? initScannerResult;
+  String menuType = "Default";
+
+  // Dashboard menu items configuration
+  final List<Map<String, dynamic>> items = [
+    {
+      "title": "Scanner",
+      "icon": Icons.barcode_reader,
+      "routeUrl": "/chooseoptions",
+    },
+    {
+      "title": "Dispatch In Box",
+      "icon": Icons.inbox,
+      "routeUrl": "/dispatch-in-box",
+      "dispatchType": DispatchType.dispatchIn,
+    },
+    {
+      "title": "Dispatch Out Box",
+      "icon": Icons.outbox,
+      "routeUrl": "/dispatch-out-box",
+      "dispatchType": DispatchType.dispatchOut,
+    },
+  ];
+
+  // Widget lifecycle methods
   @override
   void initState() {
     super.initState();
     initLoad();
   }
 
+  @override
+  void dispose() {
+    scanResultSubscription.cancel();
+    super.dispose();
+  }
+
+  // Initialization methods
   Future<void> initLoad() async {
+    // Clear secure storage data on dashboard load
     await secureStorage.writeSecureData(SecureStorageKeys.customer, "");
     await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
     await secureStorage.writeSecureData(SecureStorageKeys.supplierOrderId, "");
     await secureStorage.writeSecureData(SecureStorageKeys.dateFrom, "");
     await secureStorage.writeSecureData(SecureStorageKeys.dateTo, "");
+
+    // Initialize scanner after microtask
+    Future.microtask(() async {
+      initScannerResult = await initScanner();
+
+      if (initScannerResult == true) {
+        scanResultSubscription = fdw.onScanResult.listen(onScanResult);
+      }
+    });
   }
 
+  // Scanner configuration and initialization
+  Future<bool> initScanner() async {
+    if (Platform.isAndroid) {
+      fdw = FlutterDataWedge();
+      await fdw.initialize();
+      await fdw.createDefaultProfile(profileName: "FZC Global App");
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // Barcode scan result handler
+  void onScanResult(ScanResult event) {
+    String barcode = event.data;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => BarcodeScannerPage(
+                barcode: barcode,
+                dispatchType: menuType == "Default"
+                    ? DispatchType.normal
+                    : menuType == "Dispatch In"
+                        ? DispatchType.dispatchIn
+                        : DispatchType.dispatchOut,
+              )),
+    );
+  }
+
+  // Navigation and interaction handlers
   void onScanThroughBarCodeClick(String routeUrl) async {
     try {
       String selectedDevice = await secureStorage
@@ -47,6 +136,7 @@ class _DashboardState extends State<Dashboard> {
         }
       }
     } catch (e) {
+      // Show error toast for navigation failures
       Fluttertoast.showToast(
         msg: "$e",
         toastLength: Toast.LENGTH_SHORT,
@@ -59,24 +149,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  final List<Map<String, dynamic>> items = [
-    {
-      "title": "Scanner",
-      "icon": Icons.barcode_reader,
-      "routeUrl": "/chooseoptions",
-    },
-    {
-      "title": "Dispatch In Box",
-      "icon": Icons.inbox,
-      "routeUrl": "/dispatch-in-box",
-    },
-    {
-      "title": "Dispatch Out Box",
-      "icon": Icons.outbox,
-      "routeUrl": "/dispatch-out-box",
-    },
-  ];
-
+  // UI widget builders
   Widget cardTile(String title, IconData icon, String routeUrl) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -84,7 +157,17 @@ class _DashboardState extends State<Dashboard> {
         onTap: () {
           if (routeUrl == "/dispatch-in-box" ||
               routeUrl == "/dispatch-out-box") {
-            onScanThroughBarCodeClick(routeUrl);
+            if (routeUrl == "/dispatch-in-box") {
+              // Sirf in-box ke liye
+              menuType = "Dispatch In";
+              setState(() {});
+              onScanThroughBarCodeClick(routeUrl);
+            } else if (routeUrl == "/dispatch-out-box") {
+              // Sirf out-box ke liye
+              menuType = "Dispatch Out";
+              setState(() {});
+              onScanThroughBarCodeClick(routeUrl);
+            }
           } else {
             Navigator.pushNamed(context, routeUrl);
           }
@@ -125,6 +208,7 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  // Main build method
   @override
   Widget build(BuildContext context) {
     return Scaffold(
