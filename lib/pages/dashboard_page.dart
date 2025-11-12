@@ -56,8 +56,8 @@ class _DashboardState extends State<Dashboard> {
   // Widget lifecycle methods
   @override
   void initState() {
-    super.initState();
     initLoad();
+    super.initState();
   }
 
   @override
@@ -68,12 +68,12 @@ class _DashboardState extends State<Dashboard> {
 
   // Initialization methods
   Future<void> initLoad() async {
-    // Clear secure storage data on dashboard load
-    await secureStorage.writeSecureData(SecureStorageKeys.customer, "");
-    await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
-    await secureStorage.writeSecureData(SecureStorageKeys.supplierOrderId, "");
-    await secureStorage.writeSecureData(SecureStorageKeys.dateFrom, "");
-    await secureStorage.writeSecureData(SecureStorageKeys.dateTo, "");
+    // // Clear secure storage data on dashboard load
+    // await secureStorage.writeSecureData(SecureStorageKeys.customer, "");
+    // await secureStorage.writeSecureData(SecureStorageKeys.supplier, "");
+    // await secureStorage.writeSecureData(SecureStorageKeys.supplierOrderId, "");
+    // await secureStorage.writeSecureData(SecureStorageKeys.dateFrom, "");
+    // await secureStorage.writeSecureData(SecureStorageKeys.dateTo, "");
 
     // Initialize scanner after microtask
     Future.microtask(() async {
