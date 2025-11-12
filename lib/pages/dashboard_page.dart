@@ -4,11 +4,9 @@ import 'dart:io';
 
 // Import statements for Flutter UI components
 import 'package:flutter/material.dart';
-
 // Import statements for external packages
 import 'package:flutter_datawedge/flutter_datawedge.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
 // Import statements for local app modules
 import 'package:fzc_global_app/pages/barcode_scanner_page.dart';
 import 'package:fzc_global_app/utils/constants.dart';
@@ -84,6 +82,18 @@ class _DashboardState extends State<Dashboard> {
       if (initScannerResult == true) {
         scanResultSubscription = fdw.onScanResult.listen(onScanResult);
       }
+
+      Fluttertoast.showToast(
+        msg: (initScannerResult == true)
+            ? "Device Ready"
+            : "Couldn't connect device",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.blueAccent,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     });
   }
 
@@ -102,6 +112,16 @@ class _DashboardState extends State<Dashboard> {
   // Barcode scan result handler
   void onScanResult(ScanResult event) {
     String barcode = event.data;
+
+    Fluttertoast.showToast(
+      msg: "Scanned Barcode: $barcode",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.blueAccent,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
 
     Navigator.push(
       context,
