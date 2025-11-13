@@ -1,7 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:fzc_global_app/pages/dashboard_page.dart';
 import 'package:fzc_global_app/pages/user_account_page.dart';
+import 'package:fzc_global_app/providers/fdw_manager.dart';
 import 'package:fzc_global_app/utils/constants.dart';
-import 'package:flutter/material.dart';
+import 'package:fzc_global_app/utils/secure_storage.dart';
+import 'package:fzc_global_app/utils/toast_utils.dart';
+import 'package:provider/provider.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
   const CustomBottomNavigationBar({super.key});
@@ -13,6 +17,7 @@ class CustomBottomNavigationBar extends StatefulWidget {
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   int _selectedIndex = 0;
+  SecureStorage secureStorage = SecureStorage();
 
   final List<Widget> screens = [const Dashboard(), const UserAccountPage()];
 
@@ -20,6 +25,34 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      String storedDevice = await secureStorage
+              .readSecureData(SecureStorageKeys.selectedDevice) ??
+          "";
+
+      if (storedDevice.startsWith("zebra_scanner")) {
+        if (mounted) {
+          var provider = Provider.of<FdwManager>(context, listen: false);
+
+          if (provider.isScannerConnected) return;
+
+          bool connected = await provider.initScanner();
+
+          if (connected) {
+            ToastUtils.showInfoToast(message: "Scanner Connected");
+          } else {
+            ToastUtils.showErrorToast(
+                message: "Scanner Not Connected! Please restart the app.");
+          }
+        }
+      }
+    });
+
+    super.initState();
   }
 
   @override

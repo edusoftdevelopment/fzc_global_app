@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fzc_global_app/api/product_api.dart';
 import 'package:fzc_global_app/models/product_model.dart';
 import 'package:fzc_global_app/pages/box_allotment_page.dart';
 import 'package:fzc_global_app/utils/constants.dart';
-import 'package:flutter/material.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 enum DispatchType { normal, dispatchIn, dispatchOut }
 
