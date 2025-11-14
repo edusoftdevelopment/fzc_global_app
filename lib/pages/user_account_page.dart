@@ -4,6 +4,10 @@ import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/pages/login_page.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
+import 'package:fzc_global_app/utils/toast_utils.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/fdw_manager.dart';
 
 class UserAccountPage extends StatefulWidget {
   const UserAccountPage({super.key});
@@ -42,10 +46,30 @@ class _UserAccountPageState extends State<UserAccountPage> {
     super.initState();
   }
 
-  void _onDeviceOptionChange(DropDownItem? selectedOption) {
+  Future<void> _onDeviceOptionChange(DropDownItem? selectedOption) async {
     if (selectedOption != null) {}
     secureStorage.writeSecureData(
         SecureStorageKeys.selectedDevice, selectedOption!.value);
+
+    if (selectedOption.value == "zebra_scanner") {
+      await _connectScanner();
+    }
+
+    setState(() {
+      _selectedValue = selectedOption;
+    });
+  }
+
+  Future<void> _connectScanner() async {
+    bool connected =
+        await Provider.of<FdwManager>(context, listen: false).initScanner();
+
+    if (connected) {
+      ToastUtils.showInfoToast(message: "Scanner Connected");
+    } else {
+      ToastUtils.showErrorToast(
+          message: "Scanner Not Connected! Please restart the app.");
+    }
   }
 
   void _logoutUser() {
@@ -109,6 +133,9 @@ class _UserAccountPageState extends State<UserAccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    var isScannerConnected =
+        Provider.of<FdwManager>(context).isScannerConnected;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Constants.bgColor,
@@ -137,6 +164,30 @@ class _UserAccountPageState extends State<UserAccountPage> {
               selectedItem: _selectedValue,
             ),
             const Spacer(),
+            if (_selectedValue != null &&
+                _selectedValue!.value == "zebra_scanner") ...[
+              GestureDetector(
+                onTap: isScannerConnected ? null : _connectScanner,
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.greenAccent,
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Center(
+                      child: Text(
+                    isScannerConnected ? "Connected" : "Connect Scanner",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold),
+                  )),
+                ),
+              ),
+            ],
+            SizedBox(
+              height: 10,
+            ),
             GestureDetector(
               onTap: _logoutUser,
               child: Container(
