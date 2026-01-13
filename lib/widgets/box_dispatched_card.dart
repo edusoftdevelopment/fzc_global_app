@@ -105,7 +105,7 @@ class BoxDispatchedCard extends StatelessWidget {
                             Icon(
                               Icons.location_on_outlined,
                               size: 16,
-                              color: Colors.grey.shade600,
+                              color: Colors.black,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -113,7 +113,7 @@ class BoxDispatchedCard extends StatelessWidget {
                                 item.deliveryModeTitle ?? '',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey.shade600,
+                                  color: Colors.black,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -126,14 +126,14 @@ class BoxDispatchedCard extends StatelessWidget {
                       Icon(
                         Icons.schedule,
                         size: 16,
-                        color: Colors.grey.shade600,
+                        color: Colors.black,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         item.formattedDispatchedTime ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: Colors.black,
                         ),
                       ),
                     ],
