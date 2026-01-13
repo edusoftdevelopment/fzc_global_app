@@ -204,12 +204,6 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Box Dispatched Status'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _onSearch,
-          )
-        ],
       ),
       body: CustomScrollView(
         controller: _scrollController,
@@ -229,9 +223,13 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Status',
-                                style: Theme.of(context).textTheme.bodyLarge),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(fontWeight: FontWeight.w600)),
                             const SizedBox(height: 6),
                             CustomDropdownTextField<DropDownItem>(
+                              isSearchable: false,
                               showDropdownOnClear: true,
                               controller: _statusController,
                               focusNode: _statusFocus,
@@ -273,6 +271,7 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                                 style: Theme.of(context).textTheme.bodyLarge),
                             const SizedBox(height: 6),
                             CustomDropdownTextField<DeliveryModeData>(
+                              isSearchable: false,
                               showDropdownOnClear: false,
                               controller: _deliveryController,
                               focusNode: _deliveryFocus,
