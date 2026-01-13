@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -45,7 +46,6 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
 
   // customers
   List<CustomerData> _customers = [];
-  bool _isCustomerLoading = false;
 
   // selected ids
   int _selectedDeliveryModeId = 0;
@@ -95,9 +95,6 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
       }
 
       // fetch customers
-      setState(() {
-        _isCustomerLoading = true;
-      });
       try {
         final cRes = await BoxDispatchedStatusApi.getCustomers();
         setState(() {
@@ -105,10 +102,6 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
         });
       } catch (e) {
         ToastUtils.showErrorToast(message: 'Failed to load customers');
-      } finally {
-        setState(() {
-          _isCustomerLoading = false;
-        });
       }
     });
   }
@@ -169,7 +162,7 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
       if (_scrollController.hasClients) {
         // animate to some offset so user sees results area
         _scrollController.animateTo(
-          300,
+          200,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeIn,
         );
@@ -310,25 +303,95 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                           .bodyLarge!
                           .copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  CustomDropdownTextField<CustomerData>(
-                    showDropdownOnClear: false,
-                    controller: _customerController,
-                    focusNode: _customerFocus,
-                    hintText: 'Select Customer',
-                    items: customers,
-                    itemToString: (item) => item.label ?? '',
-                    isLoading: _isCustomerLoading,
-                    onClear: () {
+                  DropdownSearch<CustomerData>(
+                    popupProps: PopupProps.menu(
+                      showSearchBox: true,
+                      containerBuilder: (context, popupWidget) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: popupWidget,
+                        );
+                      },
+                      menuProps: const MenuProps(
+                        backgroundColor: Colors.white,
+                        elevation: 4,
+                      ),
+                      searchFieldProps: TextFieldProps(
+                        decoration: InputDecoration(
+                          hintText: 'Search customer...',
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.black.withOpacity(0.1)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.black.withOpacity(0.1)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.black.withOpacity(0.1)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    items: (filter, infiniteScrollProps) async => customers,
+                    itemAsString: (CustomerData u) => u.label ?? '',
+                    compareFn: (CustomerData item1, CustomerData item2) =>
+                        item1.value == item2.value,
+                    decoratorProps: DropDownDecoratorProps(
+                      baseStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Select Customer',
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.black.withOpacity(0.1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.black.withOpacity(0.1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.black.withOpacity(0.1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    onChanged: (CustomerData? item) {
                       setState(() {
-                        _selectedCustomerId = 0;
+                        _selectedCustomerId = item?.value ?? 0;
+                        _customerController.text = item?.label ?? '';
                       });
                     },
-                    onSelected: (item) {
-                      setState(() {
-                        _customerController.text = item.label ?? '';
-                        _selectedCustomerId = item.value ?? 0;
-                      });
-                    },
+                    suffixProps: const DropdownSuffixProps(
+                      clearButtonProps: ClearButtonProps(isVisible: true),
+                    ),
+                    selectedItem: _selectedCustomerId == 0
+                        ? null
+                        : _customers.cast<CustomerData?>().firstWhere(
+                              (element) =>
+                                  element?.value == _selectedCustomerId,
+                              orElse: () => null,
+                            ),
                   ),
 
                   const SizedBox(height: 12),
