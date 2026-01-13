@@ -9,6 +9,7 @@ import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/models/box_dispatched_status_model.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:fzc_global_app/utils/toast_utils.dart';
+import 'package:fzc_global_app/widgets/box_dispatched_card.dart';
 
 class BoxDispatchedStatus extends StatefulWidget {
   const BoxDispatchedStatus({super.key});
@@ -231,11 +232,20 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                                 style: Theme.of(context).textTheme.bodyLarge),
                             const SizedBox(height: 6),
                             CustomDropdownTextField<DropDownItem>(
+                              showDropdownOnClear: true,
                               controller: _statusController,
                               focusNode: _statusFocus,
                               hintText: 'Select Status',
                               items: _statusItems,
                               itemToString: (item) => item.label,
+                              onClear: () {
+                                setState(() {
+                                  _status = 'Pending';
+                                  _statusController.text = 'Pending';
+                                  _dateFrom = null;
+                                  _dateTo = null;
+                                });
+                              },
                               onSelected: (item) {
                                 setState(() {
                                   _status = item.value;
@@ -263,6 +273,7 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                                 style: Theme.of(context).textTheme.bodyLarge),
                             const SizedBox(height: 6),
                             CustomDropdownTextField<DeliveryModeData>(
+                              showDropdownOnClear: false,
                               controller: _deliveryController,
                               focusNode: _deliveryFocus,
                               hintText: 'Select Delivery Mode',
@@ -270,6 +281,11 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                               itemToString: (item) =>
                                   item.deliveryModeTitle ?? '',
                               isLoading: _isDeliveryLoading,
+                              onClear: () {
+                                setState(() {
+                                  _selectedDeliveryModeId = 0;
+                                });
+                              },
                               onSelected: (item) {
                                 setState(() {
                                   _deliveryController.text =
@@ -290,12 +306,18 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                       style: Theme.of(context).textTheme.bodyLarge),
                   const SizedBox(height: 6),
                   CustomDropdownTextField<CustomerData>(
+                    showDropdownOnClear: false,
                     controller: _customerController,
                     focusNode: _customerFocus,
                     hintText: 'Select Customer',
                     items: customers,
                     itemToString: (item) => item.label ?? '',
                     isLoading: _isCustomerLoading,
+                    onClear: () {
+                      setState(() {
+                        _selectedCustomerId = 0;
+                      });
+                    },
                     onSelected: (item) {
                       setState(() {
                         _customerController.text = item.label ?? '';
@@ -406,54 +428,60 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                       ],
                     ),
                   ],
-
-                  const SizedBox(height: 16),
-
-                  // Search & Reset buttons (single place)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.search),
-                          label: const Text('Search'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Constants.primaryColor,
-                            foregroundColor: Constants.whiteColor,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: _onSearch,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Constants.primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 16),
-                          side: BorderSide(color: Constants.primaryColor200),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('Reset'),
-                        onPressed: () => _onReset(keepDatesAsNow: false),
-                      )
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
-
+          // pinned header: Search & Reset
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SearchHeaderDelegate(
+              minHeight: 64,
+              maxHeight: 64,
+              child: Container(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.search),
+                        label: const Text('Search'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Constants.primaryColor,
+                          foregroundColor: Constants.whiteColor,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: _onSearch,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Constants.primaryColor,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        side: BorderSide(color: Constants.primaryColor200),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Reset'),
+                      onPressed: () => _onReset(keepDatesAsNow: true),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           // divider
           const SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               child: Divider(),
             ),
           ),
@@ -486,60 +514,7 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final item = _boxItems[index];
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(14.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(item.barcode ?? '',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Expanded(
-                                      child: Text(item.customerName ?? '')),
-                                  const SizedBox(width: 8),
-                                  Text(item.deliveryModeTitle ?? ''),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(item.formattedDispatchedTime ?? ''),
-                            ],
-                          ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Constants.primaryColor,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(10),
-                                bottomRight: Radius.circular(10),
-                              ),
-                            ),
-                            child: Text('${index + 1}',
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                return BoxDispatchedCard(item: item, index: index);
               },
               childCount: _boxItems.length,
             ),
@@ -547,5 +522,31 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
         ],
       ),
     );
+  }
+}
+
+class _SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  _SearchHeaderDelegate(
+      {required this.minHeight, required this.maxHeight, required this.child});
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(child: child);
+  }
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return true;
   }
 }
