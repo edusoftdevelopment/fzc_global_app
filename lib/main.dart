@@ -7,6 +7,7 @@ import "package:fzc_global_app/pages/itemcode_scanner_page.dart";
 import "package:fzc_global_app/pages/login_page.dart";
 import "package:fzc_global_app/pages/settings/screens/configuration_screen.dart";
 import "package:fzc_global_app/pages/zebra_touch_computer_scanner_page.dart";
+import "package:fzc_global_app/pages/box_dispatched_status.dart";
 import "package:fzc_global_app/providers/common_data_provider.dart";
 import "package:fzc_global_app/providers/configuration_provider.dart";
 import "package:fzc_global_app/providers/fdw_manager.dart";
@@ -69,6 +70,7 @@ class MyApp extends StatelessWidget {
         "/itemcodeboxallotment": (context) =>
             const BoxAllotmentWithItemcodePage(),
         "/chooseoptions": (context) => const ZebraTouchComputerScannerPage(),
+        "/box-dispatched-status": (context) => const BoxDispatchedStatus(),
       },
     );
   }

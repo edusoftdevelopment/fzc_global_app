@@ -41,6 +41,11 @@ class _DashboardState extends State<Dashboard> {
       "routeUrl": "/dispatch-out-box",
       "dispatchType": DispatchType.dispatchOut,
     },
+    {
+      "title": "Box Dispatched Status",
+      "icon": Icons.local_shipping,
+      "routeUrl": "/box-dispatched-status",
+    },
   ];
 
   @override
