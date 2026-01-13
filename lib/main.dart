@@ -5,8 +5,10 @@ import "package:fzc_global_app/pages/box_allotment_with_itemcode_page.dart";
 import "package:fzc_global_app/pages/choose_scan_option_page.dart";
 import "package:fzc_global_app/pages/itemcode_scanner_page.dart";
 import "package:fzc_global_app/pages/login_page.dart";
+import "package:fzc_global_app/pages/settings/screens/configuration_screen.dart";
 import "package:fzc_global_app/pages/zebra_touch_computer_scanner_page.dart";
 import "package:fzc_global_app/providers/common_data_provider.dart";
+import "package:fzc_global_app/providers/configuration_provider.dart";
 import "package:fzc_global_app/providers/fdw_manager.dart";
 import "package:fzc_global_app/screens/splash_screen.dart";
 import "package:fzc_global_app/utils/constants.dart";
@@ -17,7 +19,9 @@ void main() {
     providers: [
       ChangeNotifierProvider(
           create: (context) => CommonDataProvider()..fetchData()),
-      ChangeNotifierProvider(create: (context) => FdwManager())
+      ChangeNotifierProvider(create: (context) => FdwManager()),
+      ChangeNotifierProvider(
+          create: (context) => ConfigurationProvider()..loadBaseUrl()),
     ],
     child: const MyApp(),
   ));
@@ -53,6 +57,7 @@ class MyApp extends StatelessWidget {
         "/": (context) => const CustomSplashScreen(),
         "/dashboard": (context) => const CustomBottomNavigationBar(),
         "/auth/login": (context) => const LoginPage(),
+        "/settings/configuration": (context) => const ConfigurationScreen(),
         "/barcodescanner": (context) => const BarcodeScannerPage(),
         "/dispatch-in-box": (context) => const BarcodeScannerPage(
               dispatchType: DispatchType.dispatchIn,

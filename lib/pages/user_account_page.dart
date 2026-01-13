@@ -184,8 +184,37 @@ class _UserAccountPageState extends State<UserAccountPage> {
                   )),
                 ),
               ),
+              const SizedBox(height: 10),
             ],
-            SizedBox(
+            // API Configuration Button - Temporarily Hidden
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.pushNamed(context, '/settings/configuration');
+            //   },
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //         color: Constants.primaryColor,
+            //         borderRadius: BorderRadius.circular(8)),
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            //     child: const Center(
+            //         child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.center,
+            //       children: [
+            //         Icon(Icons.settings, color: Colors.white, size: 20),
+            //         SizedBox(width: 8),
+            //         Text(
+            //           "API Configuration",
+            //           style: TextStyle(
+            //               color: Colors.white,
+            //               fontSize: 14,
+            //               fontWeight: FontWeight.bold),
+            //         ),
+            //       ],
+            //     )),
+            //   ),
+            // ),
+            const SizedBox(
               height: 10,
             ),
             GestureDetector(

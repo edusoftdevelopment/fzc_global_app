@@ -72,6 +72,20 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Constants.bgColor,
+        title: const Text("Login"),
+        // Settings button temporarily hidden
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.settings, color: Constants.whiteColor),
+        //     onPressed: () {
+        //       Navigator.pushNamed(context, '/settings/configuration');
+        //     },
+        //     tooltip: 'API Configuration',
+        //   ),
+        // ],
+      ),
       body: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20),
