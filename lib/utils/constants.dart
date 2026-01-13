@@ -14,10 +14,11 @@ class Constants {
 }
 
 class APIConstants {
+  static const String baseUrl = 'http://109.177.119.219:89';
   // static const String baseUrl = 'http://192.168.7.9:112';`
   // static const String baseUrl = 'http://192.168.7.7:131';
   // static const String baseUrl = 'https://apsze.world:487'; // Updated base URL
-  static const String baseUrl = 'https://apsze.world:493';
+  // static const String baseUrl = 'https://apsze.world:493';
 }
 
 class SecureStorageKeys {
