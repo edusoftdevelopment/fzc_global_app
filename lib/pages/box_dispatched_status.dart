@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:fzc_global_app/api/box_dispatched_status_api.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+
+import 'package:fzc_global_app/api/box_dispatched_status_api.dart';
 import 'package:fzc_global_app/shared/custom_drop_down_textfield.dart';
 import 'package:fzc_global_app/providers/common_data_provider.dart';
 import 'package:fzc_global_app/models/common_model.dart';
 import 'package:fzc_global_app/models/box_dispatched_status_model.dart';
 import 'package:fzc_global_app/utils/constants.dart';
+import 'package:fzc_global_app/utils/toast_utils.dart';
 
 class BoxDispatchedStatus extends StatefulWidget {
   const BoxDispatchedStatus({super.key});
@@ -40,36 +42,73 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
   DateTime? _dateFrom;
   DateTime? _dateTo;
 
-  bool _isSearching = false;
-  List<String> _searchResults = [];
+  // customers
+  List<CustomerData> _customers = [];
+  bool _isCustomerLoading = false;
+
+  // selected ids
+  int _selectedDeliveryModeId = 0;
+  int _selectedCustomerId = 0;
+
+  // box results
+  List<Dt> _boxItems = [];
+  bool _isLoadingBoxes = false;
+
+  // have we performed a search yet (used to show appropriate empty state)
+  bool _hasSearched = false;
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    // ensure common data is loaded and fetch delivery modes
+
+    // run after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<CommonDataProvider>(context, listen: false);
+      // ensure any required common data is loaded in provider
       provider.fetchData();
 
+      // initial date values -> today (but only used when status=Dispatched)
+      _dateFrom = DateTime.now();
+      _dateTo = DateTime.now();
+
+      // set initial status text
+      _statusController.text = _status;
+
+      // fetch delivery modes
       setState(() {
         _isDeliveryLoading = true;
       });
-
       try {
         final res = await BoxDispatchedStatusApi.getDeliveryModes();
         setState(() {
           _deliveryModes = res.data ?? [];
         });
       } catch (e) {
-        // TODO: show toast or error handling
+        ToastUtils.showErrorToast(message: 'Failed to load delivery modes');
       } finally {
         setState(() {
           _isDeliveryLoading = false;
         });
       }
 
-      // set initial status text
-      _statusController.text = _status;
+      // fetch customers
+      setState(() {
+        _isCustomerLoading = true;
+      });
+      try {
+        final cRes = await BoxDispatchedStatusApi.getCustomers();
+        setState(() {
+          _customers = cRes.data ?? [];
+        });
+      } catch (e) {
+        ToastUtils.showErrorToast(message: 'Failed to load customers');
+      } finally {
+        setState(() {
+          _isCustomerLoading = false;
+        });
+      }
     });
   }
 
@@ -81,21 +120,85 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
     _deliveryFocus.dispose();
     _customerController.dispose();
     _customerFocus.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _onSearch() {
-    // For now just show placeholders; real API call will be added later
+  Future<void> _onSearch() async {
     setState(() {
-      _isSearching = true;
-      _searchResults = List.generate(3, (i) => 'Result ${i + 1}');
+      _isLoadingBoxes = true;
+      _boxItems = [];
+      _hasSearched = true;
     });
+
+    try {
+      // format dates if needed (only when searching dispatched)
+      String df = '';
+      String dt = '';
+      if (_status == 'Dispatched') {
+        df = _dateFrom != null
+            ? DateFormat('dd-MMM-yyyy').format(_dateFrom!)
+            : '';
+        dt = _dateTo != null ? DateFormat('dd-MMM-yyyy').format(_dateTo!) : '';
+      }
+
+      final res = await BoxDispatchedStatusApi.getBoxData(
+        type: _status,
+        datefrom: df,
+        dateto: dt,
+        deliveryModelID: _selectedDeliveryModeId,
+        customerID: _selectedCustomerId,
+      );
+
+      setState(() {
+        _boxItems = res.dt ?? [];
+      });
+
+      if (_boxItems.isEmpty) {
+        ToastUtils.showInfoToast(message: 'No results found');
+      }
+    } catch (e) {
+      ToastUtils.showErrorToast(message: '$e');
+    } finally {
+      setState(() {
+        _isLoadingBoxes = false;
+      });
+
+      // scroll to results
+      if (_scrollController.hasClients) {
+        // animate to some offset so user sees results area
+        _scrollController.animateTo(
+          300,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeIn,
+        );
+      }
+    }
+  }
+
+  void _onReset({bool keepDatesAsNow = false}) {
+    setState(() {
+      _deliveryController.clear();
+      _customerController.clear();
+      _dateFrom = keepDatesAsNow ? DateTime.now() : null;
+      _dateTo = keepDatesAsNow ? DateTime.now() : null;
+      _status = 'Pending';
+      _statusController.text = 'Pending';
+      _selectedDeliveryModeId = 0;
+      _selectedCustomerId = 0;
+      _boxItems.clear();
+      _hasSearched = false;
+    });
+
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CommonDataProvider>(context);
-    final customers = provider.customers;
+    final customers = _customers;
 
     return Scaffold(
       appBar: AppBar(
@@ -103,224 +206,345 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {},
+            onPressed: _onSearch,
           )
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Status',
-                          style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 6),
-                      CustomDropdownTextField<DropDownItem>(
-                        controller: _statusController,
-                        focusNode: _statusFocus,
-                        hintText: 'Select Status',
-                        items: _statusItems,
-                        itemToString: (item) => item.label,
-                        onSelected: (item) {
-                          setState(() {
-                            _status = item.value;
-                            _statusController.text = item.label;
-                            if (_status != 'Dispatched') {
-                              _dateFrom = null;
-                              _dateTo = null;
-                            }
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Delivery Mode',
-                          style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 6),
-                      CustomDropdownTextField<DeliveryModeData>(
-                        controller: _deliveryController,
-                        focusNode: _deliveryFocus,
-                        hintText: 'Select Delivery Mode',
-                        items: _deliveryModes,
-                        itemToString: (item) => item.deliveryModeTitle ?? '',
-                        isLoading: _isDeliveryLoading,
-                        onSelected: (item) {
-                          // set controller display text
-                          _deliveryController.text =
-                              item.deliveryModeTitle ?? '';
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text('Customer', style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 6),
-            CustomDropdownTextField<DropDownItem>(
-              controller: _customerController,
-              focusNode: _customerFocus,
-              hintText: 'Select Customer',
-              items: customers,
-              itemToString: (item) => item.label,
-              isLoading: customers.isEmpty,
-              onSelected: (item) {},
-            ),
-            const SizedBox(height: 12),
-            // Date pickers shown only for Dispatched (modern styled buttons)
-            if (_status == 'Dispatched') ...[
-              Row(
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // Search form
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Constants.primaryColor,
-                        foregroundColor: Constants.whiteColor,
-                        elevation: 2,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  // First row: Status + Delivery Mode
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Status',
+                                style: Theme.of(context).textTheme.bodyLarge),
+                            const SizedBox(height: 6),
+                            CustomDropdownTextField<DropDownItem>(
+                              controller: _statusController,
+                              focusNode: _statusFocus,
+                              hintText: 'Select Status',
+                              items: _statusItems,
+                              itemToString: (item) => item.label,
+                              onSelected: (item) {
+                                setState(() {
+                                  _status = item.value;
+                                  _statusController.text = item.label;
+                                  if (_status != 'Dispatched') {
+                                    _dateFrom = null;
+                                    _dateTo = null;
+                                  } else {
+                                    // set defaults when user switches to Dispatched
+                                    _dateFrom ??= DateTime.now();
+                                    _dateTo ??= DateTime.now();
+                                  }
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                      onPressed: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: _dateFrom ?? DateTime.now(),
-                          firstDate: DateTime(2015, 8),
-                          lastDate: DateTime(2101),
-                        );
-                        if (picked != null) {
-                          setState(() => _dateFrom = picked);
-                        }
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Date From',
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 6),
-                          Text(
-                            _dateFrom == null
-                                ? 'Select date'
-                                : DateFormat('dd-MMM-yyyy').format(_dateFrom!),
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Constants.primaryColor,
-                        foregroundColor: Constants.whiteColor,
-                        elevation: 2,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Delivery Mode',
+                                style: Theme.of(context).textTheme.bodyLarge),
+                            const SizedBox(height: 6),
+                            CustomDropdownTextField<DeliveryModeData>(
+                              controller: _deliveryController,
+                              focusNode: _deliveryFocus,
+                              hintText: 'Select Delivery Mode',
+                              items: _deliveryModes,
+                              itemToString: (item) =>
+                                  item.deliveryModeTitle ?? '',
+                              isLoading: _isDeliveryLoading,
+                              onSelected: (item) {
+                                setState(() {
+                                  _deliveryController.text =
+                                      item.deliveryModeTitle ?? '';
+                                  _selectedDeliveryModeId =
+                                      item.deliveryModeID ?? 0;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                      onPressed: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: _dateTo ?? DateTime.now(),
-                          firstDate: DateTime(2015, 8),
-                          lastDate: DateTime(2101),
-                        );
-                        if (picked != null) {
-                          setState(() => _dateTo = picked);
-                        }
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Date To',
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 6),
-                          Text(
-                            _dateTo == null
-                                ? 'Select date'
-                                : DateFormat('dd-MMM-yyyy').format(_dateTo!),
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
+
+                  const SizedBox(height: 12),
+                  Text('Customer',
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 6),
+                  CustomDropdownTextField<CustomerData>(
+                    controller: _customerController,
+                    focusNode: _customerFocus,
+                    hintText: 'Select Customer',
+                    items: customers,
+                    itemToString: (item) => item.label ?? '',
+                    isLoading: _isCustomerLoading,
+                    onSelected: (item) {
+                      setState(() {
+                        _customerController.text = item.label ?? '';
+                        _selectedCustomerId = item.value ?? 0;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Date pickers shown only for Dispatched
+                  if (_status == 'Dispatched') ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Constants.primaryColor,
+                              elevation: 1,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                    color: Constants.primaryColor200),
+                              ),
+                            ),
+                            onPressed: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _dateFrom ?? DateTime.now(),
+                                firstDate: DateTime(2015, 8),
+                                lastDate: DateTime(2101),
+                              );
+                              if (picked != null) {
+                                setState(() => _dateFrom = picked);
+                              }
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Date From',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _dateFrom == null
+                                      ? 'Select'
+                                      : DateFormat('dd-MMM-yyyy')
+                                          .format(_dateFrom!),
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Constants.primaryColor,
+                              elevation: 1,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                    color: Constants.primaryColor200),
+                              ),
+                            ),
+                            onPressed: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _dateTo ?? DateTime.now(),
+                                firstDate: DateTime(2015, 8),
+                                lastDate: DateTime(2101),
+                              );
+                              if (picked != null) {
+                                setState(() => _dateTo = picked);
+                              }
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Date To',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _dateTo == null
+                                      ? 'Select'
+                                      : DateFormat('dd-MMM-yyyy')
+                                          .format(_dateTo!),
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  // Search & Reset buttons (single place)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.search),
+                          label: const Text('Search'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Constants.primaryColor,
+                            foregroundColor: Constants.whiteColor,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: _onSearch,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Constants.primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
+                          side: BorderSide(color: Constants.primaryColor200),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Reset'),
+                        onPressed: () => _onReset(keepDatesAsNow: false),
+                      )
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
                 ],
               ),
-            ],
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.search),
-                    label: const Text('Search'),
-                    onPressed: _onSearch,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  child: const Text('Reset'),
-                  onPressed: () {
-                    setState(() {
-                      _deliveryController.clear();
-                      _customerController.clear();
-                      _dateFrom = null;
-                      _dateTo = null;
-                      _status = 'Pending';
-                      _statusController.text = 'Pending';
-                      _isSearching = false;
-                      _searchResults.clear();
-                    });
-                  },
-                )
-              ],
             ),
-            const SizedBox(height: 18),
-            const Divider(),
-            const SizedBox(height: 12),
-            // Results placeholder
-            if (!_isSearching)
-              const Center(child: Text('Search results will appear here'))
-            else
-              ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  final val = _searchResults[index];
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.local_shipping),
-                      title: Text(val),
-                      subtitle: const Text('Details will be shown here'),
+          ),
+
+          // divider
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              child: Divider(),
+            ),
+          ),
+
+          // results area: loader / empty message / nothing
+          SliverToBoxAdapter(
+            child: _isLoadingBoxes
+                ? const SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : (!_hasSearched
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 20),
+                        child: Center(
+                            child: Text('Search results will appear here')),
+                      )
+                    : (_boxItems.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 20),
+                            child: Center(child: Text('No results found')),
+                          )
+                        : const SizedBox.shrink())),
+          ),
+
+          // list of cards (empty if no items)
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final item = _boxItems[index];
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(14.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.barcode ?? '',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: Text(item.customerName ?? '')),
+                                  const SizedBox(width: 8),
+                                  Text(item.deliveryModeTitle ?? ''),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(item.formattedDispatchedTime ?? ''),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Constants.primaryColor,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Text('${index + 1}',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
-                itemCount: _searchResults.length,
-              ),
-          ],
-        ),
+                  ),
+                );
+              },
+              childCount: _boxItems.length,
+            ),
+          ),
+        ],
       ),
     );
   }
