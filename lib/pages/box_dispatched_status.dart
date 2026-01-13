@@ -268,7 +268,10 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Delivery Mode',
-                                style: Theme.of(context).textTheme.bodyLarge),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge!
+                                    .copyWith(fontWeight: FontWeight.w600)),
                             const SizedBox(height: 6),
                             CustomDropdownTextField<DeliveryModeData>(
                               isSearchable: false,
@@ -302,7 +305,10 @@ class _BoxDispatchedStatusState extends State<BoxDispatchedStatus> {
 
                   const SizedBox(height: 12),
                   Text('Customer',
-                      style: Theme.of(context).textTheme.bodyLarge),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge!
+                          .copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   CustomDropdownTextField<CustomerData>(
                     showDropdownOnClear: false,
