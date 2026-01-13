@@ -1,14 +1,15 @@
 import 'dart:convert';
 
 import 'package:fzc_global_app/models/common_model.dart';
-import 'package:fzc_global_app/utils/constants.dart';
+import 'package:fzc_global_app/utils/api_helper.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<DropDownItem>> getCustomers() async {
   try {
-    final response = await http.post(
-        Uri.parse('${APIConstants.baseUrl}/BarcodeAllotment/LoadCustomers'),
-        headers: {"Content-Type": "application/json"});
+    final String url =
+        await ApiHelper.buildUrl('/BarcodeAllotment/LoadCustomers');
+    final response = await http
+        .post(Uri.parse(url), headers: {"Content-Type": "application/json"});
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
@@ -28,9 +29,10 @@ Future<List<DropDownItem>> getCustomers() async {
 
 Future<List<DropDownItem>> getSuppliers() async {
   try {
-    final response = await http.post(
-        Uri.parse('${APIConstants.baseUrl}/BarcodeAllotment/LoadSuppliers'),
-        headers: {"Content-Type": "application/json"});
+    final String url =
+        await ApiHelper.buildUrl('/BarcodeAllotment/LoadSuppliers');
+    final response = await http
+        .post(Uri.parse(url), headers: {"Content-Type": "application/json"});
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
@@ -55,10 +57,10 @@ Future<List<DropDownItem>> getSupplierOrders(int supplierID) async {
       queryParams += "?SupplierID=$supplierID";
     }
 
-    final response = await http.post(
-        Uri.parse(
-            '${APIConstants.baseUrl}/BarcodeAllotment/LoadSupplierOrders$queryParams'),
-        headers: {"Content-Type": "application/json"});
+    final String url = await ApiHelper.buildUrl(
+        '/BarcodeAllotment/LoadSupplierOrders$queryParams');
+    final response = await http
+        .post(Uri.parse(url), headers: {"Content-Type": "application/json"});
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);

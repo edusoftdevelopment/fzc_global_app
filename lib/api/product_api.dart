@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:fzc_global_app/models/product_model.dart';
 import 'package:fzc_global_app/utils/barcode_manager.dart';
-import 'package:fzc_global_app/utils/constants.dart';
+import 'package:fzc_global_app/utils/api_helper.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<ProductModel>> getProducts(
@@ -44,10 +44,10 @@ Future<List<ProductModel>> getProducts(
       queryParams += "&DateTo=$dateTo";
     }
 
-    final response = await http.post(
-        Uri.parse(
-            '${APIConstants.baseUrl}/BarcodeAllotment/GetAllProducts${queryParams.replaceFirst("&", "?")}'),
-        headers: {"Content-Type": "application/json"});
+    final String url = await ApiHelper.buildUrl(
+        '/BarcodeAllotment/GetAllProducts${queryParams.replaceFirst("&", "?")}');
+    final response = await http
+        .post(Uri.parse(url), headers: {"Content-Type": "application/json"});
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
@@ -74,7 +74,7 @@ class APIResponse {
 
 Future<APIResponse> addProduct(ProductModel product, String barCode,
     int updatedQuantity, String from) async {
-  String apiUrl = '${APIConstants.baseUrl}/BarcodeAllotment/AddBoxAllotment';
+  String apiUrl = await ApiHelper.buildUrl('/BarcodeAllotment/AddBoxAllotment');
 
   var modifiedBarCode = BarcodeManager.parseBarcode(barCode);
 
@@ -109,9 +109,8 @@ Future<APIResponse> addProduct(ProductModel product, String barCode,
 }
 
 Future<APIResponse> barcodeAllotment(String barcode, bool status) async {
-  String apiUrl =
-      '${APIConstants.baseUrl}/BarcodeAllotment/UpdateGeneratedBarcodesDetail?Barcode=$barcode&status=$status';
-  // String apiUrl = '${APIConstants.baseUrl}/BarcodeAllotment';
+  String apiUrl = await ApiHelper.buildUrl(
+      '/BarcodeAllotment/UpdateGeneratedBarcodesDetail?Barcode=$barcode&status=$status');
 
   var modifiedBarCode = BarcodeManager.parseBarcode(barcode);
 

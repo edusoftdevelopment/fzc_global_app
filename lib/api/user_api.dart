@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:fzc_global_app/models/user_model.dart';
-import 'package:fzc_global_app/utils/constants.dart';
+import 'package:fzc_global_app/utils/api_helper.dart';
 import 'package:http/http.dart' as http;
 
 Future<UserModel> loginUser(String identifier, String password) async {
   if (identifier.isNotEmpty && password.isNotEmpty) {
-    const String url = "${APIConstants.baseUrl}/Login/LoginProcess";
+    final String url = await ApiHelper.buildUrl('/Login/LoginProcess');
 
     try {
       final response = await http.post(Uri.parse(url),
