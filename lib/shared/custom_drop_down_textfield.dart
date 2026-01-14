@@ -53,8 +53,7 @@ class CustomDropdownTextField<T extends Object> extends StatefulWidget {
   final bool writeWithList;
   final void Function(PointerUpEvent)? onTapUpOutside;
   final bool showDropdownOnClear;
-  final bool isSearchable; // نیا پیرامیٹر
-
+  final bool isSearchable; 
   @override
   State<CustomDropdownTextField<T>> createState() =>
       _CustomDropdownTextFieldState<T>();
