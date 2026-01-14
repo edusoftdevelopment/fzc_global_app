@@ -129,7 +129,8 @@ class _CustomDropdownTextFieldState<T extends Object>
     final typingReadOnly = widget.readOnly ||
         widget.isLoading ||
         (widget.isChangable == false) ||
-        (widget.writeWithList == false);
+        (widget.writeWithList == false) ||
+        !widget.isSearchable;
 
     final optionsDisabled = widget.readOnly || widget.isLoading;
 
@@ -208,6 +209,8 @@ class _CustomDropdownTextFieldState<T extends Object>
             focusNode: focusNode,
             autofocus: _isAutofocus,
             readOnly: typingReadOnly,
+            showCursor: widget.isSearchable,
+            enableInteractiveSelection: widget.isSearchable,
             onChanged: (value) {
               if (widget.onChanged != null &&
                   !widget.isLoading &&
