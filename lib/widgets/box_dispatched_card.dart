@@ -133,7 +133,7 @@ class BoxDispatchedCard extends StatelessWidget {
                         item.formattedDispatchedTime ?? '',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.black,
+                          color: Colors.blackapi,
                         ),
                       ),
                     ],
