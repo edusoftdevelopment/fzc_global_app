@@ -5,6 +5,7 @@ import "package:fzc_global_app/pages/box_allotment_with_itemcode_page.dart";
 import "package:fzc_global_app/pages/choose_scan_option_page.dart";
 import "package:fzc_global_app/pages/itemcode_scanner_page.dart";
 import "package:fzc_global_app/pages/login_page.dart";
+import "package:fzc_global_app/pages/update_sales_location_page.dart";
 import "package:fzc_global_app/pages/settings/screens/configuration_screen.dart";
 import "package:fzc_global_app/pages/zebra_touch_computer_scanner_page.dart";
 import "package:fzc_global_app/pages/box_dispatched_status.dart";
@@ -71,6 +72,8 @@ class MyApp extends StatelessWidget {
             const BoxAllotmentWithItemcodePage(),
         "/chooseoptions": (context) => const ZebraTouchComputerScannerPage(),
         "/box-dispatched-status": (context) => const BoxDispatchedStatus(),
+        "/update-sales-location": (context) =>
+            const UpdateSalesLocationPage(),
       },
     );
   }

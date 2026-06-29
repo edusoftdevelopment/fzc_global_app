@@ -46,6 +46,11 @@ class _DashboardState extends State<Dashboard> {
       "icon": Icons.local_shipping,
       "routeUrl": "/box-dispatched-status",
     },
+    {
+      "title": "Update Sales Location",
+      "icon": Icons.edit_location_alt,
+      "routeUrl": "/update-sales-location",
+    },
   ];
 
   @override
