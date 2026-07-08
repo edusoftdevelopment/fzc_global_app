@@ -1,12 +1,16 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_datawedge/flutter_datawedge.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
 import 'package:fzc_global_app/api/sales_location_api.dart';
 import 'package:fzc_global_app/models/sales_location_model.dart';
 import 'package:fzc_global_app/utils/constants.dart';
+import 'package:fzc_global_app/utils/secure_storage.dart';
 
 class UpdateSalesLocationDetailPage extends StatefulWidget {
   final PendingOrder order;
@@ -315,25 +319,83 @@ class _PickFlowSheetState extends State<_PickFlowSheet> {
   int _qty = 1;
   bool _saving = false;
 
+  //* Scanner Config — respects the "selectedDevice" setting (mobile vs zebra)
+  final SecureStorage _secureStorage = SecureStorage();
+  FlutterDataWedge? _fdw;
+  StreamSubscription<ScanResult>? _scanSub;
+  bool _useZebra = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initScanner();
+  }
+
+  Future<void> _initScanner() async {
+    final device =
+        await _secureStorage.readSecureData(SecureStorageKeys.selectedDevice) ??
+            "";
+    if (device == "zebra_scanner" && Platform.isAndroid) {
+      try {
+        final fdw = FlutterDataWedge();
+        await fdw.initialize();
+        await fdw.createDefaultProfile(profileName: "FZC Global App");
+        _scanSub = fdw.onScanResult.listen(_onZebraScan);
+        if (mounted) {
+          setState(() {
+            _fdw = fdw;
+            _useZebra = true;
+          });
+        }
+      } catch (e) {
+        // If the Zebra scanner can't be initialised, fall back to the camera.
+        debugPrint("Zebra scanner init failed, using camera: $e");
+      }
+    }
+  }
+
+  // Hardware-trigger scans arrive here and are routed to the active step.
+  void _onZebraScan(ScanResult event) {
+    final cleaned = _clean(event.data);
+    if (cleaned.isEmpty) return;
+    if (_step == 0) {
+      _itemCtrl.text = cleaned.toUpperCase();
+      _confirmItem();
+    } else if (_step == 1) {
+      _locCtrl.text = cleaned;
+      _confirmLoc();
+    }
+  }
+
+  // Strip whitespace and stray characters (e.g. the "$" Code 39 artifact),
+  // keeping alphanumerics and the dash used in part/location codes.
+  String _clean(String raw) =>
+      raw.split(' ')[0].replaceAll(RegExp(r'[^A-Za-z0-9-]'), '');
+
   @override
   void dispose() {
+    _scanSub?.cancel();
     _itemCtrl.dispose();
     _locCtrl.dispose();
     super.dispose();
   }
 
-  Future<String?> _scan() async {
+  Future<String?> _scanCamera() async {
     final res = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const SimpleBarcodeScannerPage()),
     );
-    if (res is String && res != '-1') return res.trim();
+    if (res is String && res != '-1') return _clean(res);
     return null;
   }
 
   // Step 1 — confirm the product (item) barcode
   Future<void> _scanItem() async {
-    final r = await _scan();
+    if (_useZebra) {
+      _fdw?.scannerControl(true);
+      return;
+    }
+    final r = await _scanCamera();
     if (r == null) return;
     _itemCtrl.text = r.toUpperCase();
     _confirmItem();
@@ -354,7 +416,11 @@ class _PickFlowSheetState extends State<_PickFlowSheet> {
 
   // Step 2 — confirm the location barcode
   Future<void> _scanLoc() async {
-    final r = await _scan();
+    if (_useZebra) {
+      _fdw?.scannerControl(true);
+      return;
+    }
+    final r = await _scanCamera();
     if (r == null) return;
     _locCtrl.text = r;
     _confirmLoc();

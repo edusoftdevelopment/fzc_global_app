@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fzc_global_app/api/product_api.dart';
 import 'package:fzc_global_app/models/product_model.dart';
 import 'package:fzc_global_app/pages/box_allotment_page.dart';
+import 'package:fzc_global_app/utils/barcode_manager.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:fzc_global_app/utils/secure_storage.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
@@ -48,7 +49,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     if (widget.barcode != null) {
       // From Zebra device
       fromZebraDevice = true;
-      barcode = widget.barcode!;
+      barcode = BarcodeManager.parseBarcode(widget.barcode!) ?? widget.barcode!;
       Future.microtask(() => _showConfirmationDialog());
     } else {
       // From mobile scanner
@@ -64,7 +65,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
         if (res is String && res != "-1") {
           fromZebraDevice = false;
-          barcode = res;
+          barcode = BarcodeManager.parseBarcode(res) ?? res;
           _showConfirmationDialog();
         } else {
           // Navigator.of(context).pushNamed("/dashboard");
@@ -95,9 +96,10 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
         setState(() {
           fromZebraDevice = true;
-          barcode = widget.barcode!;
+          barcode =
+              BarcodeManager.parseBarcode(widget.barcode!) ?? widget.barcode!;
           _products = getProducts(
-              barcode: widget.barcode!,
+              barcode: barcode,
               customerId: customerId,
               supplierId: supplierId,
               supplierOrderId: supplierOrderId,
@@ -135,7 +137,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           if (res is String) {
             if (res != "-1") {
               fromZebraDevice = false;
-              barcode = res;
+              barcode = BarcodeManager.parseBarcode(res) ?? res;
               _products = getProducts(
                   barcode: barcode,
                   customerId: customerId,

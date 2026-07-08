@@ -6,6 +6,7 @@ import 'package:flutter_datawedge/flutter_datawedge.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fzc_global_app/api/product_api.dart';
 import 'package:fzc_global_app/models/product_model.dart';
+import 'package:fzc_global_app/utils/barcode_manager.dart';
 import 'package:fzc_global_app/utils/constants.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 
@@ -71,7 +72,7 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
 
         if (res is String) {
           if (res != "-1") {
-            result = res;
+            result = BarcodeManager.sanitizeBarcode(res);
             _addAllotment();
           } else {
             if (mounted) {
@@ -103,7 +104,7 @@ class _BoxAllotmentPageState extends State<BoxAllotmentPage> {
 
     String barcode = event.data;
 
-    result = barcode;
+    result = BarcodeManager.sanitizeBarcode(barcode);
 
     fdw.scannerControl(false);
     _addAllotment().then((_) {
