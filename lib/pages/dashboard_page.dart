@@ -51,6 +51,11 @@ class _DashboardState extends State<Dashboard> {
       "icon": Icons.edit_location_alt,
       "routeUrl": "/update-sales-location",
     },
+    {
+      "title": "Web Invoice Scanner",
+      "icon": Icons.receipt_long,
+      "routeUrl": "/web-invoice-scanner",
+    },
   ];
 
   @override

@@ -6,6 +6,7 @@ import "package:fzc_global_app/pages/choose_scan_option_page.dart";
 import "package:fzc_global_app/pages/itemcode_scanner_page.dart";
 import "package:fzc_global_app/pages/login_page.dart";
 import "package:fzc_global_app/pages/update_sales_location_page.dart";
+import "package:fzc_global_app/pages/web_invoice_scanner/web_invoice_list_page.dart";
 import "package:fzc_global_app/pages/settings/screens/configuration_screen.dart";
 import "package:fzc_global_app/pages/zebra_touch_computer_scanner_page.dart";
 import "package:fzc_global_app/pages/box_dispatched_status.dart";
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
         "/box-dispatched-status": (context) => const BoxDispatchedStatus(),
         "/update-sales-location": (context) =>
             const UpdateSalesLocationPage(),
+        "/web-invoice-scanner": (context) => const WebInvoiceListPage(),
       },
     );
   }

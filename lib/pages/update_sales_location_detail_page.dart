@@ -372,6 +372,12 @@ class _PickFlowSheetState extends State<_PickFlowSheet> {
   String _clean(String raw) =>
       raw.split(' ')[0].replaceAll(RegExp(r'[^A-Za-z0-9-]'), '');
 
+  // For comparison only: uppercase and drop every non-alphanumeric (incl. the
+  // dash), so "222-2544" and "2222544" are treated as equal.
+  static final RegExp _nonAlnum = RegExp(r'[^A-Z0-9]');
+  String _norm(String s) =>
+      s.trim().toUpperCase().replaceAll(_nonAlnum, '');
+
   @override
   void dispose() {
     _scanSub?.cancel();
@@ -402,8 +408,8 @@ class _PickFlowSheetState extends State<_PickFlowSheet> {
   }
 
   void _confirmItem() {
-    final v = _itemCtrl.text.trim().toUpperCase();
-    if (v == widget.line.itemCode.toUpperCase()) {
+    final v = _norm(_itemCtrl.text);
+    if (v == _norm(widget.line.itemCode)) {
       setState(() {
         _itemError = '';
         _step = 1;
@@ -427,12 +433,12 @@ class _PickFlowSheetState extends State<_PickFlowSheet> {
   }
 
   void _confirmLoc() {
-    final s = _locCtrl.text.trim().toUpperCase();
+    final s = _norm(_locCtrl.text);
     final found = widget.line.locations
-        .where((l) => l.barcode.toUpperCase() == s && l.availableQty > 0);
+        .where((l) => _norm(l.barcode) == s && l.availableQty > 0);
     if (found.isEmpty) {
       final exists =
-          widget.line.locations.where((l) => l.barcode.toUpperCase() == s);
+          widget.line.locations.where((l) => _norm(l.barcode) == s);
       setState(() => _locError = exists.isEmpty
           ? 'Location not valid for this item.'
           : 'No available stock at ${exists.first.stockLocationTitle}.');
